@@ -4,7 +4,6 @@
   "compilerOptions": {
      "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "target": "ES5",
     "outDir": "./dist"
   },
   "include": ["src"],
