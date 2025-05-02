@@ -1,23 +1,39 @@
-# Node
+# Node.js dependencies
 node_modules/
-dist/
-pnpm-lock.yaml
-
-# Logs
-logs
-*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Env
-.env
-.env.*.local
+# Logs
+logs/
+*.log
+*.log.*
 
-# OS
+# Environment variables
+.env
+.env.*
+
+# OS generated files
 .DS_Store
 Thumbs.db
 
-# Prisma
-prisma/migrations/
-generated/
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+
+# Build output
+dist/
+build/
+out/
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+
+# Git specific
+.git/
+.gitignore
