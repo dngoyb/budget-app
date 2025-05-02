@@ -1,4 +1,8 @@
-import { Injectable, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateBudgetDto } from './dto/create-budget.dto';
 
@@ -34,6 +38,36 @@ export class BudgetService {
       },
     });
 
+    return budget;
+  }
+
+  async findByUser(userId: string) {
+    const budgets = await this.prisma.budget.findMany({
+      where: {
+        userId: userId,
+      },
+      orderBy: [{ year: 'desc' }, { month: 'desc' }],
+    });
+
+    if (budgets.length === 0) {
+      throw new NotFoundException(
+        `No budgets found for user with ID ${userId}`,
+      );
+    }
+
+    return budgets;
+  }
+
+  async findOneByUserAndMonthYear(userId: string, month: number, year: number) {
+    const budget = await this.prisma.budget.findUnique({
+      where: {
+        userId_month_year: {
+          userId: userId,
+          month: month,
+          year: year,
+        },
+      },
+    });
     return budget;
   }
 }

@@ -1,4 +1,12 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  Body,
+  Param,
+  ParseIntPipe,
+  NotFoundException,
+} from '@nestjs/common';
 import { BudgetService } from './budget.service';
 import { CreateBudgetDto } from './dto/create-budget.dto';
 
@@ -8,15 +16,48 @@ export class BudgetController {
 
   @Post()
   async create(@Body() createBudgetDto: CreateBudgetDto) {
-    // Use @Body to get the request body and validate with CreateBudgetDto
-    // TODO: Get the actual userId from the authenticated user.
-    // For now, we'll use a placeholder. In a real app with auth,
-    // you would get this from the request object populated by your auth guard.
-    const userId = 'placeholder-user-id'; // Replace with logic to get authenticated user ID
-
-    // Call the create method in the BudgetService
+    const userId = 'placeholder-user-id';
     const newBudget = await this.budgetService.create(userId, createBudgetDto);
 
     return newBudget;
+  }
+
+  @Get()
+  async findAll() {
+    const userId = 'placeholder-user-id';
+    const budgets = await this.budgetService.findByUser(userId);
+
+    if (!budgets || budgets.length === 0) {
+      throw new NotFoundException(
+        `No budgets found for user with ID ${userId}`,
+      );
+    }
+
+    return budgets;
+  }
+
+  @Get(':year/:month')
+  async findOneByMonthYear(
+    @Param('year', ParseIntPipe) year: number,
+    @Param('month', ParseIntPipe) month: number,
+  ) {
+    // TODO: Get the actual userId from the authenticated user.
+    // For now, use the same placeholder.
+    const userId = 'placeholder-user-id'; // Replace with logic to get authenticated user ID
+
+    // Call the findOneByUserAndMonthYear method in the BudgetService
+    const budget = await this.budgetService.findOneByUserAndMonthYear(
+      userId,
+      month,
+      year,
+    );
+
+    if (!budget) {
+      throw new NotFoundException(
+        `Budget for ${month}/${year} not found for user with ID ${userId}`,
+      );
+    }
+
+    return budget;
   }
 }
