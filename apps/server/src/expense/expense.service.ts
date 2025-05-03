@@ -13,21 +13,46 @@ export class ExpenseService {
   ): Promise<Expense> {
     const { amount, category, description, date } = createExpenseDto;
 
-    const expenseDate = new Date(date);
-    if (isNaN(expenseDate.getTime())) {
-      throw new Error('Invalid date');
-    }
-
     const expense: Expense = await this.prisma.expense.create({
       data: {
         amount,
         category,
         description,
-        date: expenseDate,
+        date: new Date(date),
         userId,
       },
     });
 
     return expense;
+  }
+
+  async findByUser(userId: string): Promise<Expense[]> {
+    const expenses: Expense[] = await this.prisma.expense.findMany({
+      where: {
+        userId: userId,
+      },
+      orderBy: [{ date: 'desc' }],
+    });
+
+    return expenses;
+  }
+
+  async findByMonthYear(
+    userId: string,
+    month: number,
+    year: number,
+  ): Promise<Expense[]> {
+    const expenses: Expense[] = await this.prisma.expense.findMany({
+      where: {
+        userId: userId,
+        date: {
+          gte: new Date(year, month - 1, 1),
+          lt: new Date(year, month, 1),
+        },
+      },
+      orderBy: [{ date: 'desc' }],
+    });
+
+    return expenses;
   }
 }
