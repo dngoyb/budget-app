@@ -7,6 +7,9 @@ import {
   ParseIntPipe,
   Param,
   Patch,
+  Delete,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { ExpenseService } from './expense.service';
 import { CreateExpenseDto } from './dto/create-expense.dto';
@@ -91,5 +94,13 @@ export class ExpenseController {
     );
 
     return updatedExpense;
+  }
+
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async remove(@Param('id') id: string): Promise<void> {
+    const userId = 'cma6tfkxy0002ctojy4dauemc';
+
+    await this.expenseService.remove(id, userId);
   }
 }

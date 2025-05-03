@@ -106,4 +106,29 @@ export class ExpenseService {
       throw error;
     }
   }
+
+  async remove(id: string, userId: string): Promise<Expense> {
+    try {
+      const deletedExpense: Expense = await this.prisma.expense.delete({
+        where: {
+          id: id,
+          userId: userId,
+        },
+      });
+      return deletedExpense;
+    } catch (error) {
+      if (
+        typeof error === 'object' &&
+        error !== null &&
+        'code' in error &&
+        typeof (error as { code?: string }).code === 'string' &&
+        (error as { code?: string }).code === 'P2025'
+      ) {
+        throw new NotFoundException(
+          `Expense with ID "${id}" not found for this user.`,
+        );
+      }
+      throw error;
+    }
+  }
 }
