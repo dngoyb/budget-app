@@ -55,4 +55,19 @@ export class ExpenseService {
 
     return expenses;
   }
+
+  async findByCategory(userId: string, category: string): Promise<Expense[]> {
+    const expenses: Expense[] = await this.prisma.expense.findMany({
+      where: {
+        userId: userId,
+        category: {
+          contains: category,
+          mode: 'insensitive',
+        },
+      },
+      orderBy: [{ date: 'desc' }],
+    });
+
+    return expenses;
+  }
 }

@@ -30,12 +30,30 @@ export class ExpenseController {
   }
 
   @Get()
-  async findAll() {
+  async findAll(): Promise<Expense[]> {
     const userId = 'cma6tfkxy0002ctojy4dauemc';
 
     const expenses: Expense[] = await this.expenseService.findByUser(userId);
 
     return expenses;
+  }
+
+  @Get('category/:categoryName')
+  async findByCategory(
+    @Param('categoryName') categoryName: string,
+  ): Promise<Expense[]> {
+    const userId = 'cma6tfkxy0002ctojy4dauemc';
+
+    const expensesByCategory: Expense[] =
+      await this.expenseService.findByCategory(userId, categoryName);
+
+    if (expensesByCategory.length === 0) {
+      throw new NotFoundException(
+        `No expenses found for category "${categoryName}" for user with ID ${userId}`,
+      );
+    }
+
+    return expensesByCategory;
   }
 
   @Get(':year/:month')
