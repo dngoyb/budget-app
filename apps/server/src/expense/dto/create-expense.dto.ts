@@ -27,7 +27,7 @@ export class CreateExpenseDto {
 
   @IsNotEmpty()
   @IsDateString()
-  date!: string;
+  date!: string | Date; // Accepts both string and Date types
   // Note: The userId will typically be obtained from the authenticated user
   // in the controller or service, not directly from the request body.
 }

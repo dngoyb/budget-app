@@ -6,10 +6,12 @@ import {
   NotFoundException,
   ParseIntPipe,
   Param,
+  Patch,
 } from '@nestjs/common';
 import { ExpenseService } from './expense.service';
 import { CreateExpenseDto } from './dto/create-expense.dto';
 import { Expense } from '../../generated/prisma/client';
+import { UpdateExpenseDto } from './dto/update-expense.dto';
 
 @Controller('expenses')
 export class ExpenseController {
@@ -73,5 +75,21 @@ export class ExpenseController {
     }
 
     return expensesForMonth;
+  }
+
+  @Patch(':id')
+  async update(
+    @Param('id') id: string,
+    @Body() updateExpenseDto: UpdateExpenseDto,
+  ): Promise<Expense> {
+    const userId = 'cma6tfkxy0002ctojy4dauemc';
+
+    const updatedExpense: Expense = await this.expenseService.update(
+      id,
+      userId,
+      updateExpenseDto,
+    );
+
+    return updatedExpense;
   }
 }

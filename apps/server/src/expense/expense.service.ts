@@ -1,7 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateExpenseDto } from './dto/create-expense.dto';
 import { Expense } from '../../generated/prisma/client';
+import { UpdateExpenseDto } from './dto/update-expense.dto';
 
 @Injectable()
 export class ExpenseService {
@@ -69,5 +70,40 @@ export class ExpenseService {
     });
 
     return expenses;
+  }
+
+  async update(
+    id: string,
+    userId: string,
+    updateExpenseDto: UpdateExpenseDto,
+  ): Promise<Expense> {
+    const updateData = { ...updateExpenseDto };
+    if (updateData.date) {
+      updateData.date = new Date(updateData.date);
+    }
+
+    try {
+      const updatedExpense: Expense = await this.prisma.expense.update({
+        where: {
+          id: id,
+          userId: userId,
+        },
+        data: updateData,
+      });
+      return updatedExpense;
+    } catch (error) {
+      if (
+        typeof error === 'object' &&
+        error !== null &&
+        'code' in error &&
+        typeof (error as { code?: string }).code === 'string' &&
+        (error as { code?: string }).code === 'P2025'
+      ) {
+        throw new NotFoundException(
+          `Expense with ID "${id}" not found for this user.`,
+        );
+      }
+      throw error;
+    }
   }
 }
