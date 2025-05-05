@@ -10,21 +10,26 @@ import {
   Delete,
   HttpCode,
   HttpStatus,
+  UseGuards,
+  Req,
 } from '@nestjs/common';
 import { ExpenseService } from './expense.service';
 import { CreateExpenseDto } from './dto/create-expense.dto';
 import { Expense } from '../../generated/prisma/client';
 import { UpdateExpenseDto } from './dto/update-expense.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('expenses')
+@UseGuards(JwtAuthGuard)
 export class ExpenseController {
   constructor(private readonly expenseService: ExpenseService) {}
 
   @Post()
-  async create(@Body() createExpenseDto: CreateExpenseDto): Promise<Expense> {
-    // TODO: Get the actual userId from the authenticated user.
-    // For now, we'll use a specific user ID for testing, similar to the BudgetController.
-    const userId = 'cma6tfkxy0002ctojy4dauemc'; // Replace with logic to get authenticated user ID
+  async create(
+    @Req() req: { user: { id: string } },
+    @Body() createExpenseDto: CreateExpenseDto,
+  ): Promise<Expense> {
+    const userId = req.user.id;
 
     const newExpense: Expense = await this.expenseService.create(
       userId,
@@ -35,8 +40,8 @@ export class ExpenseController {
   }
 
   @Get()
-  async findAll(): Promise<Expense[]> {
-    const userId = 'cma6tfkxy0002ctojy4dauemc';
+  async findAll(@Req() req: { user: { id: string } }): Promise<Expense[]> {
+    const userId = req.user.id;
 
     const expenses: Expense[] = await this.expenseService.findByUser(userId);
 
@@ -45,9 +50,10 @@ export class ExpenseController {
 
   @Get('category/:categoryName')
   async findByCategory(
+    @Req() req: { user: { id: string } },
     @Param('categoryName') categoryName: string,
   ): Promise<Expense[]> {
-    const userId = 'cma6tfkxy0002ctojy4dauemc';
+    const userId = req.user.id;
 
     const expensesByCategory: Expense[] =
       await this.expenseService.findByCategory(userId, categoryName);
@@ -63,10 +69,11 @@ export class ExpenseController {
 
   @Get(':year/:month')
   async findByMonthYear(
+    @Req() req: { user: { id: string } },
     @Param('year', ParseIntPipe) year: number,
     @Param('month', ParseIntPipe) month: number,
   ): Promise<Expense[]> {
-    const userId = 'cma6tfkxy0002ctojy4dauemc';
+    const userId = req.user.id;
 
     const expensesForMonth: Expense[] =
       await this.expenseService.findByMonthYear(userId, month, year);
@@ -82,10 +89,11 @@ export class ExpenseController {
 
   @Patch(':id')
   async update(
+    @Req() req: { user: { id: string } },
     @Param('id') id: string,
     @Body() updateExpenseDto: UpdateExpenseDto,
   ): Promise<Expense> {
-    const userId = 'cma6tfkxy0002ctojy4dauemc';
+    const userId = req.user.id;
 
     const updatedExpense: Expense = await this.expenseService.update(
       id,
@@ -98,18 +106,22 @@ export class ExpenseController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async remove(@Param('id') id: string): Promise<void> {
-    const userId = 'cma6tfkxy0002ctojy4dauemc';
+  async remove(
+    @Req() req: { user: { id: string } },
+    @Param('id') id: string,
+  ): Promise<void> {
+    const userId = req.user.id;
 
     await this.expenseService.remove(id, userId);
   }
 
   @Get('total/:year/:month')
   async getTotalExpensesByMonthYear(
+    @Req() req: { user: { id: string } },
     @Param('year', ParseIntPipe) year: number,
     @Param('month', ParseIntPipe) month: number,
   ): Promise<{ total: number }> {
-    const userId = 'cma6tfkxy0002ctojy4dauemc'; // Use the hardcoded user ID for now
+    const userId = req.user.id;
 
     const totalAmount = await this.expenseService.getTotalExpensesByMonthYear(
       userId,
@@ -120,3 +132,5 @@ export class ExpenseController {
     return { total: totalAmount };
   }
 }
+
+// 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjbWFiZjhyaHQwMDAwY3QzcnFmNHFvdXh4IiwiZW1haWwiOiJ0ZXN0dXNlckBleGFtcGxlLmNvbSIsIm5hbWUiOiJUZXN0IFVzZXIiLCJpYXQiOjE3NDY0NzA0MDksImV4cCI6MTc0NjQ3NDAwOX0.V9RLLP8R7dff9PXd-ZGXJvxHwCQZrtijTfxT6M4s8gc';

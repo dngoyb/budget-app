@@ -6,25 +6,32 @@ import {
   Param,
   ParseIntPipe,
   NotFoundException,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
 import { BudgetService } from './budget.service';
 import { CreateBudgetDto } from './dto/create-budget.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('budget')
+@UseGuards(JwtAuthGuard)
 export class BudgetController {
   constructor(private readonly budgetService: BudgetService) {}
 
   @Post()
-  async create(@Body() createBudgetDto: CreateBudgetDto) {
-    const userId = 'placeholder-user-id';
+  async create(
+    @Req() req: { user: { id: string } },
+    @Body() createBudgetDto: CreateBudgetDto,
+  ) {
+    const userId = req.user.id;
     const newBudget = await this.budgetService.create(userId, createBudgetDto);
 
     return newBudget;
   }
 
   @Get()
-  async findAll() {
-    const userId = 'placeholder-user-id';
+  async findAll(@Req() req: { user: { id: string } }) {
+    const userId = req.user.id;
     const budgets = await this.budgetService.findByUser(userId);
 
     if (!budgets || budgets.length === 0) {
@@ -38,14 +45,12 @@ export class BudgetController {
 
   @Get(':year/:month')
   async findOneByMonthYear(
+    @Req() req: { user: { id: string } },
     @Param('year', ParseIntPipe) year: number,
     @Param('month', ParseIntPipe) month: number,
   ) {
-    // TODO: Get the actual userId from the authenticated user.
-    // For now, use the same placeholder.
-    const userId = 'placeholder-user-id'; // Replace with logic to get authenticated user ID
+    const userId = req.user.id;
 
-    // Call the findOneByUserAndMonthYear method in the BudgetService
     const budget = await this.budgetService.findOneByUserAndMonthYear(
       userId,
       month,
