@@ -103,4 +103,20 @@ export class ExpenseController {
 
     await this.expenseService.remove(id, userId);
   }
+
+  @Get('total/:year/:month')
+  async getTotalExpensesByMonthYear(
+    @Param('year', ParseIntPipe) year: number,
+    @Param('month', ParseIntPipe) month: number,
+  ): Promise<{ total: number }> {
+    const userId = 'cma6tfkxy0002ctojy4dauemc'; // Use the hardcoded user ID for now
+
+    const totalAmount = await this.expenseService.getTotalExpensesByMonthYear(
+      userId,
+      month,
+      year,
+    );
+
+    return { total: totalAmount };
+  }
 }

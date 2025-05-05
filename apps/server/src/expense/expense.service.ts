@@ -131,4 +131,25 @@ export class ExpenseService {
       throw error;
     }
   }
+
+  async getTotalExpensesByMonthYear(
+    userId: string,
+    month: number,
+    year: number,
+  ): Promise<number> {
+    const result = await this.prisma.expense.aggregate({
+      _sum: {
+        amount: true,
+      },
+      where: {
+        userId: userId,
+        date: {
+          gte: new Date(year, month - 1, 1),
+          lt: new Date(year, month, 1),
+        },
+      },
+    });
+
+    return result._sum.amount || 0;
+  }
 }
