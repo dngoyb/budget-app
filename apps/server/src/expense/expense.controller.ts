@@ -132,5 +132,3 @@ export class ExpenseController {
     return { total: totalAmount };
   }
 }
-
-// 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjbWFiZjhyaHQwMDAwY3QzcnFmNHFvdXh4IiwiZW1haWwiOiJ0ZXN0dXNlckBleGFtcGxlLmNvbSIsIm5hbWUiOiJUZXN0IFVzZXIiLCJpYXQiOjE3NDY0NzA0MDksImV4cCI6MTc0NjQ3NDAwOX0.V9RLLP8R7dff9PXd-ZGXJvxHwCQZrtijTfxT6M4s8gc';
