@@ -14,7 +14,7 @@ const ExpensesPage = () => <h2>Expenses (Protected)</h2>;
 ReactDOM.createRoot(document.getElementById('root')!).render(
 	<React.StrictMode>
 		<BrowserRouter>
-			<Toaster position='bottom-right' />
+			<Toaster position='top-center' />
 			<Routes>
 				<Route path='/register' element={<RegistrationPage />} />
 				<Route path='/login' element={<LoginPage />} />
