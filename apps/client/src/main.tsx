@@ -7,6 +7,7 @@ import RegistrationPage from './pages/RegistrationPage.tsx';
 import LoginPage from './pages/LoginPage.tsx';
 import DashboardPage from './pages/DashboardPage.tsx';
 import ProtectedRoute from './components/ProtectedRoute.tsx';
+import BudgetSetupPage from './pages/BudgetSetupPage.tsx';
 
 const BudgetPage = () => <h2>Budget (Protected)</h2>;
 const ExpensesPage = () => <h2>Expenses (Protected)</h2>;
@@ -21,6 +22,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 
 				<Route element={<ProtectedRoute />}>
 					<Route path='/dashboard' element={<DashboardPage />} />
+					<Route path='/budget/setup' element={<BudgetSetupPage />} />
 					<Route path='/budget' element={<BudgetPage />} />
 					<Route path='/expenses' element={<ExpensesPage />} />
 				</Route>
