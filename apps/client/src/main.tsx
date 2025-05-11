@@ -1,6 +1,5 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import App from './App.tsx';
 import './index.css';
 import { Toaster } from 'sonner';
 
@@ -12,10 +11,9 @@ import DashboardPage from './pages/DashboardPage.tsx';
 import BudgetSetupPage from './pages/BudgetSetupPage.tsx';
 import ExpenseEntryPage from './pages/ExpenseEntryPage.tsx';
 import ExpenseListPage from './pages/ExpenseListPage.tsx';
+import BudgetDetailsPage from './pages/BudgetDetailsPage.tsx';
 
 import ProtectedRoute from './components/ProtectedRoute.tsx';
-
-const BudgetDetailsPage = () => <h2>Budget Details (Protected)</h2>;
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
 	<React.StrictMode>

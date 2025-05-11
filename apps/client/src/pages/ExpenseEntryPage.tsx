@@ -55,7 +55,10 @@ const ExpenseEntryPage: React.FC = () => {
 
 	const onSubmit: SubmitHandler<ExpenseEntryFormValues> = async (data) => {
 		try {
-			const result = await expenseService.createExpense(data);
+			const result = await expenseService.createExpense({
+				...data,
+				category: data.category || '',
+			});
 
 			toast.success('Expense Added', {
 				description: `Expense of ${result.amount} recorded.`,
