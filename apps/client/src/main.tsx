@@ -27,10 +27,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 				<Route element={<ProtectedRoute />}>
 					<Route path='/dashboard' element={<DashboardPage />} />
 					<Route path='/budget/setup' element={<BudgetSetupPage />} />
+					<Route path='/budget/details' element={<BudgetDetailsPage />} />
 					<Route path='/expenses/add' element={<ExpenseEntryPage />} />
 					<Route path='/expenses' element={<ExpenseListPage />} />
-
-					<Route path='/budget/details' element={<BudgetDetailsPage />} />
 				</Route>
 			</Routes>
 		</BrowserRouter>
