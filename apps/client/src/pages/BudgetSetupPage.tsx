@@ -88,11 +88,12 @@ const BudgetSetupPage: React.FC = () => {
 				description: `Budget of ${result.amount} set for ${result.month}/${result.year}.`,
 			});
 			navigate('/dashboard'); // Using the navigate function
-		} catch (err: any) {
+		} catch (err) {
 			console.error('Budget creation error:', err);
 			const errorMessage =
-				err.response?.data?.message ||
-				'Failed to create budget. Please try again.';
+				err instanceof Error
+					? err.message
+					: 'Failed to create budget. Please try again.';
 			toast.error('Budget Creation Failed', {
 				description: errorMessage,
 			});
