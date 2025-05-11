@@ -12,6 +12,7 @@ import BudgetSetupPage from './pages/BudgetSetupPage.tsx';
 import ExpenseEntryPage from './pages/ExpenseEntryPage.tsx';
 import ExpenseListPage from './pages/ExpenseListPage.tsx';
 import BudgetDetailsPage from './pages/BudgetDetailsPage.tsx';
+import NotFoundPage from './pages/NotFoundPage.tsx';
 
 import ProtectedRoute from './components/ProtectedRoute.tsx';
 
@@ -31,6 +32,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 					<Route path='/expenses/add' element={<ExpenseEntryPage />} />
 					<Route path='/expenses' element={<ExpenseListPage />} />
 				</Route>
+				<Route path='*' element={<NotFoundPage />} />
 			</Routes>
 		</BrowserRouter>
 	</React.StrictMode>
