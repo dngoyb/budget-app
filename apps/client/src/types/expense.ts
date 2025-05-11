@@ -2,7 +2,7 @@
 
 export interface CreateExpenseDto {
 	amount: number;
-	category?: string;
+	category: string;
 	description?: string;
 	date: string;
 }

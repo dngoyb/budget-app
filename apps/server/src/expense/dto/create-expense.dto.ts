@@ -22,7 +22,6 @@ export class CreateExpenseDto {
 
   @IsOptional()
   @IsString()
-  @IsNotEmpty()
   description?: string;
 
   @IsNotEmpty()

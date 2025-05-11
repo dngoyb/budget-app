@@ -11,11 +11,11 @@ import LoginPage from './pages/LoginPage.tsx';
 import DashboardPage from './pages/DashboardPage.tsx';
 import BudgetSetupPage from './pages/BudgetSetupPage.tsx';
 import ExpenseEntryPage from './pages/ExpenseEntryPage.tsx';
+import ExpenseListPage from './pages/ExpenseListPage.tsx';
 
 import ProtectedRoute from './components/ProtectedRoute.tsx';
 
 const BudgetDetailsPage = () => <h2>Budget Details (Protected)</h2>;
-const ExpensesListPage = () => <h2>Expenses List (Protected)</h2>;
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
 	<React.StrictMode>
@@ -30,9 +30,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 					<Route path='/dashboard' element={<DashboardPage />} />
 					<Route path='/budget/setup' element={<BudgetSetupPage />} />
 					<Route path='/expenses/add' element={<ExpenseEntryPage />} />
+					<Route path='/expenses' element={<ExpenseListPage />} />
 
 					<Route path='/budget/details' element={<BudgetDetailsPage />} />
-					<Route path='/expenses' element={<ExpensesListPage />} />
 				</Route>
 			</Routes>
 		</BrowserRouter>

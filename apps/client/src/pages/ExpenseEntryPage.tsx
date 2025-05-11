@@ -108,7 +108,7 @@ const ExpenseEntryPage: React.FC = () => {
 							name='category'
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Category (Optional)</FormLabel>
+									<FormLabel>Categorys</FormLabel>
 									<FormControl>
 										<Input
 											placeholder='e.g., Groceries'
