@@ -16,49 +16,40 @@ import {
 } from '../components/ui/form';
 import { Input } from '../components/ui/input';
 import { toast } from 'sonner';
+import { Loader2 } from 'lucide-react';
 
 const budgetSetupFormSchema = z.object({
 	amount: z.preprocess(
 		(val) => Number(val),
 		z
 			.number({
-				required_error: 'Amount is required.',
-				invalid_type_error: 'Amount must be a number.',
+				required_error: 'Amount is required',
+				invalid_type_error: 'Amount must be a number',
 			})
-			.min(0.01, {
-				message: 'Amount must be greater than 0.',
-			})
+			.positive({ message: 'Amount must be greater than 0' })
+			.max(1000000, { message: 'Amount must be less than 1,000,000' })
 	),
 	month: z.preprocess(
 		(val) => Number(val),
 		z
 			.number({
-				required_error: 'Month is required.',
-				invalid_type_error: 'Month must be a number.',
+				required_error: 'Month is required',
+				invalid_type_error: 'Month must be a number',
 			})
-			.int({
-				message: 'Month must be an integer.',
-			})
-			.min(1, {
-				message: 'Month must be between 1 and 12.',
-			})
-			.max(12, {
-				message: 'Month must be between 1 and 12.',
-			})
+			.int({ message: 'Month must be an integer' })
+			.min(1, { message: 'Month must be between 1 and 12' })
+			.max(12, { message: 'Month must be between 1 and 12' })
 	),
 	year: z.preprocess(
 		(val) => Number(val),
 		z
 			.number({
-				required_error: 'Year is required.',
-				invalid_type_error: 'Year must be a number.',
+				required_error: 'Year is required',
+				invalid_type_error: 'Year must be a number',
 			})
-			.int({
-				message: 'Year must be an integer.',
-			})
-			.min(1900, {
-				message: 'Year must be a valid year.',
-			})
+			.int({ message: 'Year must be an integer' })
+			.min(2000, { message: 'Year must be 2000 or later' })
+			.max(2100, { message: 'Year must be 2100 or earlier' })
 	),
 });
 
@@ -66,34 +57,40 @@ type BudgetSetupFormValues = z.infer<typeof budgetSetupFormSchema>;
 
 const BudgetSetupPage: React.FC = () => {
 	const navigate = useNavigate();
+	const currentDate = new Date();
 
 	const form = useForm<BudgetSetupFormValues>({
-		resolver: zodResolver(
-			budgetSetupFormSchema as z.ZodType<BudgetSetupFormValues>
-		),
+		resolver: zodResolver(budgetSetupFormSchema),
 		defaultValues: {
 			amount: 0,
-			month: new Date().getMonth() + 1,
-			year: new Date().getFullYear(),
+			month: currentDate.getMonth() + 1,
+			year: currentDate.getFullYear(),
 		},
 	});
 
 	const onSubmit = async (values: BudgetSetupFormValues) => {
-		const budgetData: CreateBudgetDto = values;
-
 		try {
-			const result = await budgetService.createBudget(budgetData);
-			console.log('Budget created successfully:', result);
+			const result = await budgetService.createBudget(
+				values as CreateBudgetDto
+			);
+
 			toast.success('Budget Created', {
-				description: `Budget of ${result.amount} set for ${result.month}/${result.year}.`,
+				description: `Budget of $${result.amount.toFixed(2)} set for ${result.month}/${result.year}`,
+				action: {
+					label: 'View Dashboard',
+					onClick: () => navigate('/dashboard'),
+				},
 			});
-			navigate('/dashboard'); // Using the navigate function
+
+			form.reset();
+			navigate('/dashboard');
 		} catch (err) {
 			console.error('Budget creation error:', err);
 			const errorMessage =
 				err instanceof Error
 					? err.message
 					: 'Failed to create budget. Please try again.';
+
 			toast.error('Budget Creation Failed', {
 				description: errorMessage,
 			});
@@ -102,7 +99,7 @@ const BudgetSetupPage: React.FC = () => {
 
 	return (
 		<div className='container mx-auto p-4'>
-			<div className='w-full max-w-md mx-auto p-8 space-y-6 bg-white rounded shadow-md'>
+			<div className='w-full max-w-md mx-auto p-8 space-y-6 bg-white rounded-lg shadow-md'>
 				<h2 className='text-2xl font-bold text-center'>
 					Set Your Monthly Budget
 				</h2>
@@ -116,47 +113,99 @@ const BudgetSetupPage: React.FC = () => {
 								<FormItem>
 									<FormLabel>Monthly Budget Amount</FormLabel>
 									<FormControl>
-										<Input type='number' placeholder='e.g., 1500' {...field} />
+										<div className='relative'>
+											<span className='absolute left-3 top-1/2 -translate-y-1/2'>
+												$
+											</span>
+											<Input
+												type='number'
+												step='0.01'
+												min='0.01'
+												placeholder='1500.00'
+												className='pl-8'
+												{...field}
+												onFocus={(e) => {
+													if (e.target.value === '0') {
+														e.target.value = '';
+													}
+												}}
+												onChange={(e) => {
+													const value = parseFloat(e.target.value);
+													field.onChange(isNaN(value) ? 0 : value);
+												}}
+											/>
+										</div>
 									</FormControl>
 									<FormMessage />
 								</FormItem>
 							)}
 						/>
 
-						<FormField
-							control={form.control}
-							name='month'
-							render={({ field }) => (
-								<FormItem>
-									<FormLabel>Month (1-12)</FormLabel>
-									<FormControl>
-										<Input type='number' placeholder='e.g., 5' {...field} />
-									</FormControl>
-									<FormMessage />
-								</FormItem>
-							)}
-						/>
+						<div className='grid grid-cols-2 gap-4'>
+							<FormField
+								control={form.control}
+								name='month'
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>Month</FormLabel>
+										<FormControl>
+											<Input
+												type='number'
+												min='1'
+												max='12'
+												placeholder='1-12'
+												{...field}
+											/>
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
 
-						<FormField
-							control={form.control}
-							name='year'
-							render={({ field }) => (
-								<FormItem>
-									<FormLabel>Year</FormLabel>
-									<FormControl>
-										<Input type='number' placeholder='e.g., 2025' {...field} />
-									</FormControl>
-									<FormMessage />
-								</FormItem>
-							)}
-						/>
+							<FormField
+								control={form.control}
+								name='year'
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>Year</FormLabel>
+										<FormControl>
+											<Input
+												type='number'
+												min='2000'
+												max='2100'
+												placeholder='YYYY'
+												{...field}
+											/>
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+						</div>
 
-						<Button
-							type='submit'
-							className='w-full'
-							disabled={form.formState.isSubmitting}>
-							{form.formState.isSubmitting ? 'Setting Budget...' : 'Set Budget'}
-						</Button>
+						<div className='grid grid-cols-2 gap-4'>
+							<Button
+								type='button'
+								variant='outline'
+								className='w-full'
+								onClick={() => navigate('/dashboard')}
+								disabled={form.formState.isSubmitting}>
+								Cancel
+							</Button>
+							<Button
+								type='submit'
+								className='w-full'
+								disabled={form.formState.isSubmitting}>
+								{form.formState.isSubmitting ? (
+									<>
+										<Loader2 className='mr-2 h-4 w-4 animate-spin' />
+										Setting...
+									</>
+								) : (
+									'Set Budget'
+								)}
+							</Button>
+						</div>
 					</form>
 				</Form>
 			</div>
