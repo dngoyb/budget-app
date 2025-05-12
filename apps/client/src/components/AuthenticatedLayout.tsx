@@ -1,17 +1,17 @@
-import React from 'react';
-import { Outlet, useNavigate, Link, useLocation } from 'react-router-dom';
+import React, { useMemo } from 'react';
+import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import UserInfoDisplay from './UserInfoDisplay';
 import { Button } from './ui/button';
 import authService from '../services/authService';
 import clsx from 'clsx';
 import {
 	LogOut,
-	ChevronDown,
 	Home,
 	PieChart,
 	DollarSign,
 	PlusCircle,
 	List,
+	Menu,
 } from 'lucide-react';
 import {
 	DropdownMenu,
@@ -20,115 +20,139 @@ import {
 	DropdownMenuTrigger,
 } from './ui/dropdown-menu';
 
+interface MenuItem {
+	path: string;
+	label: string;
+	icon: React.ReactNode;
+	matchPattern?: string | RegExp;
+	className?: string;
+}
+
 const AuthenticatedLayout: React.FC = () => {
 	const navigate = useNavigate();
 	const location = useLocation();
-
-	const handleLogout = () => {
-		authService.logout();
-		navigate('/login');
-	};
 
 	const currentDate = new Date();
 	const currentYear = currentDate.getFullYear();
 	const currentMonth = currentDate.getMonth() + 1;
 
-	const isLinkActive = (pathname: string): boolean => {
-		if (pathname.startsWith('/budget/details/')) {
-			return location.pathname.startsWith('/budget/details/');
+	const menuItems: MenuItem[] = useMemo(
+		() => [
+			{
+				path: '/dashboard',
+				label: 'Dashboard',
+				icon: <Home className='h-4 w-4' />,
+			},
+			{
+				path: `/budget/details/${currentYear}/${currentMonth}`,
+				label: 'Budget',
+				icon: <PieChart className='h-4 w-4' />,
+				matchPattern: /^\/budget\/details\/.+/,
+			},
+			{
+				path: '/budget/setup',
+				label: 'Add Budget',
+				icon: <DollarSign className='h-4 w-4' />,
+				matchPattern: /^\/budget\/setup/,
+			},
+			{
+				path: '/expenses',
+				label: 'Expenses',
+				icon: <List className='h-4 w-4' />,
+			},
+			{
+				path: '/expenses/add',
+				label: 'Add Expense',
+				icon: <PlusCircle className='h-4 w-4' />,
+				matchPattern: /^\/expenses\/add/,
+			},
+			{
+				path: '/logout',
+				label: 'Logout',
+				icon: <LogOut className='h-4 w-4' />,
+				className: 'text-red-600 hover:bg-red-50',
+			},
+		],
+		[currentYear, currentMonth]
+	);
+
+	const isLinkActive = (item: MenuItem): boolean => {
+		if (item.matchPattern) {
+			return new RegExp(item.matchPattern).test(location.pathname);
 		}
-		if (pathname.startsWith('/expenses/add')) {
-			return location.pathname.startsWith('/expenses/add');
-		}
-		if (pathname.startsWith('/budget/setup')) {
-			return location.pathname.startsWith('/budget/setup');
-		}
-		return location.pathname === pathname;
+		return location.pathname === item.path;
 	};
+
+	const handleNavigation = (path: string) => {
+		if (path === '/logout') {
+			try {
+				authService.logout();
+				navigate('/login');
+			} catch (error) {
+				console.error('Logout failed:', error);
+			}
+			return;
+		}
+		navigate(path);
+	};
+
+	const activeSection = useMemo(() => {
+		const activeItem = menuItems.find((item) => isLinkActive(item));
+		return activeItem?.label || 'Dashboard';
+	}, [location.pathname, menuItems]);
 
 	return (
 		<div className='flex flex-col min-h-screen bg-gray-100'>
-			<div className='flex justify-between items-center p-4 bg-white shadow-md'>
+			<header className='flex justify-between items-center p-4 bg-white shadow-md'>
 				<div className='flex items-center space-x-6'>
-					<UserInfoDisplay />
-
-					<Link
-						to='/dashboard'
-						className={clsx(
-							'flex items-center space-x-2 text-gray-600 hover:text-blue-600 px-3 py-2 rounded-md',
-							isLinkActive('/dashboard') &&
-								'font-medium text-blue-600 bg-blue-50'
-						)}>
-						<Home className='h-5 w-5' />
-						<span>Dashboard</span>
-					</Link>
+					{/* Clickable UserInfoDisplay that navigates to dashboard */}
+					<div
+						onClick={() => navigate('/dashboard')}
+						className='cursor-pointer'>
+						<UserInfoDisplay />
+					</div>
+					<div className='flex items-center space-x-2'>
+						<PieChart className='h-6 w-6 text-blue-600' />
+						<span className='text-xl font-semibold'>{activeSection}</span>
+					</div>
 				</div>
 
-				<div className='flex items-center space-x-4'>
-					<DropdownMenu>
-						<DropdownMenuTrigger asChild>
-							<Button variant='ghost' className='flex items-center space-x-1'>
-								<span className='font-medium'>Menu</span>
-								<ChevronDown className='h-4 w-4' />
-							</Button>
-						</DropdownMenuTrigger>
-						<DropdownMenuContent align='end' className='w-56'>
+				<DropdownMenu>
+					<DropdownMenuTrigger asChild>
+						<Button
+							variant='ghost'
+							size='icon'
+							className='rounded-full'
+							aria-label='Main menu'
+							aria-haspopup='true'>
+							<Menu className='h-5 w-5' />
+						</Button>
+					</DropdownMenuTrigger>
+					<DropdownMenuContent
+						align='end'
+						className='w-56'
+						onCloseAutoFocus={(e) => e.preventDefault()}>
+						{menuItems.map((item) => (
 							<DropdownMenuItem
-								onClick={() =>
-									navigate(`/budget/details/${currentYear}/${currentMonth}`)
-								}
+								key={item.path}
+								onClick={() => handleNavigation(item.path)}
 								className={clsx(
 									'flex items-center space-x-2 cursor-pointer',
-									isLinkActive('/budget/details/') && 'bg-blue-50'
-								)}>
-								<PieChart className='h-4 w-4' />
-								<span>Budget Details</span>
+									isLinkActive(item) && 'bg-blue-50',
+									item.className
+								)}
+								aria-current={isLinkActive(item) ? 'page' : undefined}>
+								{item.icon}
+								<span>{item.label}</span>
 							</DropdownMenuItem>
+						))}
+					</DropdownMenuContent>
+				</DropdownMenu>
+			</header>
 
-							<DropdownMenuItem
-								onClick={() => navigate('/budget/setup')}
-								className={clsx(
-									'flex items-center space-x-2 cursor-pointer',
-									isLinkActive('/budget/setup') && 'bg-blue-50'
-								)}>
-								<DollarSign className='h-4 w-4' />
-								<span>Add Budget</span>
-							</DropdownMenuItem>
-
-							<DropdownMenuItem
-								onClick={() => navigate('/expenses')}
-								className={clsx(
-									'flex items-center space-x-2 cursor-pointer',
-									isLinkActive('/expenses') && 'bg-blue-50'
-								)}>
-								<List className='h-4 w-4' />
-								<span>Expenses</span>
-							</DropdownMenuItem>
-
-							<DropdownMenuItem
-								onClick={() => navigate('/expenses/add')}
-								className={clsx(
-									'flex items-center space-x-2 cursor-pointer',
-									isLinkActive('/expenses/add') && 'bg-blue-50'
-								)}>
-								<PlusCircle className='h-4 w-4' />
-								<span>Add Expense</span>
-							</DropdownMenuItem>
-
-							<DropdownMenuItem
-								onClick={handleLogout}
-								className='flex items-center space-x-2 text-red-600 hover:bg-red-50 cursor-pointer'>
-								<LogOut className='h-4 w-4' />
-								<span>Logout</span>
-							</DropdownMenuItem>
-						</DropdownMenuContent>
-					</DropdownMenu>
-				</div>
-			</div>
-
-			<div className='flex-grow container mx-auto p-4'>
+			<main className='flex-grow container mx-auto p-4'>
 				<Outlet />
-			</div>
+			</main>
 		</div>
 	);
 };
