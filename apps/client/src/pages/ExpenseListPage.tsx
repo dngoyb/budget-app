@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import expenseService from '../services/expenseService';
 import { useNavigate } from 'react-router-dom';
 import type { Expense } from '../types/expense';
-import UserInfoDisplay from '../components/UserInfoDisplay';
 import {
 	Card,
 	CardContent,
@@ -62,55 +61,45 @@ const ExpenseListPage: React.FC = () => {
 	};
 
 	return (
-		<div className='flex flex-col min-h-screen bg-gray-100'>
-			<div className='p-4 shadow-sm'>
-				<UserInfoDisplay />
-			</div>
-			<div className='container mx-auto p-4'>
-				<div className='flex justify-between items-center mb-6'>
-					{' '}
-					{/* Flex container for title and button */}
-					<h1 className='text-2xl font-bold'>Expense List</h1>
-					<Button onClick={handleGoToAddExpense}>Add New Expense</Button>{' '}
-					{/* Add button */}
+		<div className='container mx-auto p-4'>
+			{loading && <p className='text-center'>Loading expenses...</p>}
+			{error && <p className='text-center text-red-500'>Error: {error}</p>}
+
+			{!loading && !error && (
+				<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+					{expenses.length === 0 ? (
+						<p className='col-span-full text-center text-gray-600'>
+							No expenses recorded yet.
+						</p>
+					) : (
+						expenses.map((expense) => (
+							<Card key={expense.id}>
+								<CardHeader>
+									<CardTitle className='text-lg'>
+										{expense.category || 'Uncategorized'}
+									</CardTitle>
+								</CardHeader>
+								<CardContent className='space-y-2'>
+									<p>
+										<strong>Amount:</strong> ${expense.amount.toFixed(2)}
+									</p>
+									<p>
+										<strong>Date:</strong>{' '}
+										{new Date(expense.date).toLocaleDateString()}
+									</p>
+									{expense.description && (
+										<p>
+											<strong>Description:</strong> {expense.description}
+										</p>
+									)}
+								</CardContent>
+							</Card>
+						))
+					)}
 				</div>
-
-				{loading && <p className='text-center'>Loading expenses...</p>}
-				{error && <p className='text-center text-red-500'>Error: {error}</p>}
-
-				{!loading && !error && (
-					<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
-						{expenses.length === 0 ? (
-							<p className='col-span-full text-center text-gray-600'>
-								No expenses recorded yet.
-							</p>
-						) : (
-							expenses.map((expense) => (
-								<Card key={expense.id}>
-									<CardHeader>
-										<CardTitle className='text-lg'>
-											{expense.category || 'Uncategorized'}
-										</CardTitle>
-									</CardHeader>
-									<CardContent className='space-y-2'>
-										<p>
-											<strong>Amount:</strong> ${expense.amount.toFixed(2)}
-										</p>
-										<p>
-											<strong>Date:</strong>{' '}
-											{new Date(expense.date).toLocaleDateString()}
-										</p>
-										{expense.description && (
-											<p>
-												<strong>Description:</strong> {expense.description}
-											</p>
-										)}
-									</CardContent>
-								</Card>
-							))
-						)}
-					</div>
-				)}
+			)}
+			<div className='mt-6 text-center'>
+				<Button onClick={handleGoToAddExpense}>Add New Expense</Button>
 			</div>
 		</div>
 	);

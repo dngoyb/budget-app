@@ -16,7 +16,6 @@ import {
 } from '../components/ui/form';
 import { Input } from '../components/ui/input';
 import { toast } from 'sonner';
-import UserInfoDisplay from '../components/UserInfoDisplay';
 
 const budgetSetupFormSchema = z.object({
 	amount: z.preprocess(
@@ -102,80 +101,64 @@ const BudgetSetupPage: React.FC = () => {
 	};
 
 	return (
-		<div className='flex flex-col min-h-screen bg-gray-100'>
-			<div className='p-4 bg-white shadow-md'>
-				<UserInfoDisplay />
-			</div>
+		<div className='container mx-auto p-4'>
+			<div className='w-full max-w-md mx-auto p-8 space-y-6 bg-white rounded shadow-md'>
+				<h2 className='text-2xl font-bold text-center'>
+					Set Your Monthly Budget
+				</h2>
 
-			<div className='container mx-auto p-4'>
-				<div className='w-full max-w-md mx-auto p-8 space-y-6 bg-white rounded shadow-md'>
-					<h2 className='text-2xl font-bold text-center'>
-						Set Your Monthly Budget
-					</h2>
+				<Form {...form}>
+					<form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4'>
+						<FormField
+							control={form.control}
+							name='amount'
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>Monthly Budget Amount</FormLabel>
+									<FormControl>
+										<Input type='number' placeholder='e.g., 1500' {...field} />
+									</FormControl>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
 
-					<Form {...form}>
-						<form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4'>
-							<FormField
-								control={form.control}
-								name='amount'
-								render={({ field }) => (
-									<FormItem>
-										<FormLabel>Monthly Budget Amount</FormLabel>
-										<FormControl>
-											<Input
-												type='number'
-												placeholder='e.g., 1500'
-												{...field}
-											/>
-										</FormControl>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
+						<FormField
+							control={form.control}
+							name='month'
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>Month (1-12)</FormLabel>
+									<FormControl>
+										<Input type='number' placeholder='e.g., 5' {...field} />
+									</FormControl>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
 
-							<FormField
-								control={form.control}
-								name='month'
-								render={({ field }) => (
-									<FormItem>
-										<FormLabel>Month (1-12)</FormLabel>
-										<FormControl>
-											<Input type='number' placeholder='e.g., 5' {...field} />
-										</FormControl>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
+						<FormField
+							control={form.control}
+							name='year'
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>Year</FormLabel>
+									<FormControl>
+										<Input type='number' placeholder='e.g., 2025' {...field} />
+									</FormControl>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
 
-							<FormField
-								control={form.control}
-								name='year'
-								render={({ field }) => (
-									<FormItem>
-										<FormLabel>Year</FormLabel>
-										<FormControl>
-											<Input
-												type='number'
-												placeholder='e.g., 2025'
-												{...field}
-											/>
-										</FormControl>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
-
-							<Button
-								type='submit'
-								className='w-full'
-								disabled={form.formState.isSubmitting}>
-								{form.formState.isSubmitting
-									? 'Setting Budget...'
-									: 'Set Budget'}
-							</Button>
-						</form>
-					</Form>
-				</div>
+						<Button
+							type='submit'
+							className='w-full'
+							disabled={form.formState.isSubmitting}>
+							{form.formState.isSubmitting ? 'Setting Budget...' : 'Set Budget'}
+						</Button>
+					</form>
+				</Form>
 			</div>
 		</div>
 	);

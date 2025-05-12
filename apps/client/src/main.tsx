@@ -15,6 +15,7 @@ import BudgetDetailsPage from './pages/BudgetDetailsPage.tsx';
 import NotFoundPage from './pages/NotFoundPage.tsx';
 
 import ProtectedRoute from './components/ProtectedRoute.tsx';
+import AuthenticatedLayout from './components/AuthenticatedLayout.tsx';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
 	<React.StrictMode>
@@ -26,11 +27,17 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 				<Route path='/login' element={<LoginPage />} />
 
 				<Route element={<ProtectedRoute />}>
-					<Route path='/dashboard' element={<DashboardPage />} />
-					<Route path='/budget/setup' element={<BudgetSetupPage />} />
-					<Route path='/budget/details' element={<BudgetDetailsPage />} />
-					<Route path='/expenses/add' element={<ExpenseEntryPage />} />
-					<Route path='/expenses' element={<ExpenseListPage />} />
+					<Route element={<AuthenticatedLayout />}>
+						<Route path='/' element={<DashboardPage />} />
+						<Route path='/dashboard' element={<DashboardPage />} />
+						<Route path='/budget/setup' element={<BudgetSetupPage />} />
+						<Route
+							path='/budget/details/:year/:month'
+							element={<BudgetDetailsPage />}
+						/>
+						<Route path='/expenses/add' element={<ExpenseEntryPage />} />
+						<Route path='/expenses' element={<ExpenseListPage />} />
+					</Route>
 				</Route>
 				<Route path='*' element={<NotFoundPage />} />
 			</Routes>
