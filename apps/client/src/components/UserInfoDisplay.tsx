@@ -1,4 +1,5 @@
 import authService from '../services/authService';
+import { UserCircle } from 'lucide-react'; // Import the Lucide icon
 
 const UserInfoDisplay: React.FC = () => {
 	const user = authService.getCurrentUser();
@@ -8,11 +9,19 @@ const UserInfoDisplay: React.FC = () => {
 	}
 
 	return (
-		<div className='flex items-center space-x-2 p-2 mb-4'>
-			<div className='w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold'>
-				{user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+		<div className='flex items-center space-x-3 p-3 '>
+			<UserCircle
+				className={`w-8 h-8 ${user.name ? 'text-blue-500' : 'text-gray-400'}`}
+			/>
+
+			<div className='flex flex-col'>
+				<span className='font-medium text-gray-900'>
+					{user.name || 'Guest User'}
+				</span>
+				{user.email && (
+					<span className='text-xs text-gray-500'>{user.email}</span>
+				)}
 			</div>
-			<span className='text-lg font-semibold'>{user.name || 'User'}</span>
 		</div>
 	);
 };
