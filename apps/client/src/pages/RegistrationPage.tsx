@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import authService from '../services/authService';
 import type { CreateUserDto } from '../types/auth';
 import { Button } from '../components/ui/button';
+import type { AxiosError } from 'axios';
 import {
 	Form,
 	FormControl,
@@ -53,10 +54,12 @@ const RegistrationPage: React.FC = () => {
 				description: 'You can now log in with your new account.',
 			});
 			navigate('/login');
-		} catch (err: any) {
-			console.error('Registration error:', err);
+		} catch (err) {
+			const error = err as AxiosError<{ message: string }>;
+			console.error('Login error:', error);
 			const errorMessage =
-				err.response?.data?.message || 'Registration failed. Please try again.';
+				error.response?.data?.message ||
+				'Registration failed. Please try again.';
 			toast.error('Registration Failed', {
 				description: errorMessage,
 			});

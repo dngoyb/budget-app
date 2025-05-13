@@ -14,6 +14,7 @@ import { Button } from '../components/ui/button';
 import { toast } from 'sonner';
 import { Loader2, ArrowLeft, PlusCircle } from 'lucide-react';
 import { format } from 'date-fns';
+import type { AxiosError } from 'axios';
 
 const BudgetDetailsPage: React.FC = () => {
 	const navigate = useNavigate();
@@ -75,7 +76,7 @@ const BudgetDetailsPage: React.FC = () => {
 			} catch (err) {
 				console.error('Failed to fetch budget details:', err);
 				const errorMessage =
-					(err as any)?.response?.data?.message ||
+					(err as AxiosError<{ message: string }>)?.response?.data?.message ||
 					(err instanceof Error
 						? err.message
 						: 'Failed to load budget details. Please try again.');

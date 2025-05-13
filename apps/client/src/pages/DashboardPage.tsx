@@ -4,6 +4,7 @@ import budgetService from '../services/budgetService';
 import expenseService from '../services/expenseService';
 import type { Budget } from '../types/budget';
 import type { Expense, TotalExpensesResponse } from '../types/expense';
+import type { AxiosError } from 'axios';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 import {
@@ -42,12 +43,13 @@ const DashboardPage: React.FC = () => {
 				.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 				.slice(0, 5);
 			setRecentExpenses(sortedRecentExpenses);
-		} catch (err: any) {
-			console.error('Failed to fetch dashboard data:', err);
+		} catch (err: unknown) {
+			const error = err as AxiosError<{ message: string }>;
+			console.error('Failed to fetch dashboard data:', error);
 
 			if (
-				err.response?.status === 404 &&
-				err.response.data?.message?.includes('Budget not found')
+				error.response?.status === 404 &&
+				error.response.data?.message?.includes('Budget not found')
 			) {
 				setBudget(null);
 				try {
@@ -65,13 +67,13 @@ const DashboardPage: React.FC = () => {
 						)
 						.slice(0, 5);
 					setRecentExpenses(sortedRecentExpenses);
-				} catch (expenseErr) {
+				} catch {
 					setExpensesData({ total: 0 }); // Default response when no expenses
 					setRecentExpenses([]);
 				}
 			} else {
 				const errorMessage =
-					err.response?.data?.message ||
+					error.response?.data?.message ||
 					'Failed to load dashboard data. Please try again.';
 				setError(errorMessage);
 				toast.error('Error Loading Dashboard', {

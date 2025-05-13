@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import expenseService from '../services/expenseService';
 import { useNavigate } from 'react-router-dom';
 import type { Expense } from '../types/expense';
+import type { AxiosError } from 'axios';
 import {
 	Card,
 	CardContent,
@@ -33,7 +34,7 @@ const ExpenseListPage: React.FC = () => {
 			} catch (err) {
 				console.error('Failed to fetch expenses:', err);
 				const errorMessage =
-					(err as any)?.response?.data?.message ||
+					(err as AxiosError<{ message: string }>)?.response?.data?.message ||
 					(err instanceof Error
 						? err.message
 						: 'Failed to load expenses. Please try again.');

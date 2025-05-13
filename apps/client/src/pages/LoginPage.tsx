@@ -5,6 +5,7 @@ import * as z from 'zod';
 import { useNavigate } from 'react-router-dom';
 import authService from '../services/authService';
 import type { LoginDto } from '../types/auth';
+import type { AxiosError } from 'axios';
 import { Button } from '../components/ui/button';
 import {
 	Form,
@@ -49,10 +50,11 @@ const LoginPage: React.FC = () => {
 				description: 'Welcome back!',
 			});
 			navigate('/dashboard');
-		} catch (err: any) {
-			console.error('Login error:', err);
+		} catch (err: unknown) {
+			const error = err as AxiosError<{ message: string }>;
+			console.error('Login error:', error);
 			const errorMessage =
-				err.response?.data?.message ||
+				error.response?.data?.message ||
 				'Login failed. Please check your credentials.';
 			toast.error('Login Failed', {
 				description: errorMessage,
