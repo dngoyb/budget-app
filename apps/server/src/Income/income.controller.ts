@@ -66,6 +66,21 @@ export class IncomeController {
     return income;
   }
 
+  @Get('total/:year/:month')
+  async getTotalByMonthYear(
+    @Req() req: { user: { id: string } },
+    @Param('year', ParseIntPipe) year: number,
+    @Param('month', ParseIntPipe) month: number,
+  ) {
+    const userId = req.user.id;
+    const total = await this.incomeService.getTotalIncomeByMonthYear(
+      userId,
+      year,
+      month,
+    );
+    return { total };
+  }
+
   @Put(':id')
   async update(
     @Req() req: { user: { id: string } },

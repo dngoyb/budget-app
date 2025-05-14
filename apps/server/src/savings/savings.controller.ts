@@ -29,20 +29,6 @@ export class SavingsController {
     return this.savingsService.create(userId, createSavingsDto);
   }
 
-  @Get(':year/:month')
-  async findByMonthYear(
-    @Req() req: { user: { id: string } },
-    @Param('year', ParseIntPipe) year: number,
-    @Param('month', ParseIntPipe) month: number,
-  ) {
-    const userId = req.user.id;
-    return this.savingsService.findByUserAndPeriod(
-      userId,
-      new Date(year, month - 1, 1),
-      new Date(year, month, 0, 23, 59, 59),
-    );
-  }
-
   @Get('total/:year/:month')
   async getTotalByMonthYear(
     @Req() req: { user: { id: string } },
@@ -56,6 +42,20 @@ export class SavingsController {
       month,
     );
     return { total };
+  }
+
+  @Get(':year/:month')
+  async findByMonthYear(
+    @Req() req: { user: { id: string } },
+    @Param('year', ParseIntPipe) year: number,
+    @Param('month', ParseIntPipe) month: number,
+  ) {
+    const userId = req.user.id;
+    return this.savingsService.findByUserAndPeriod(
+      userId,
+      new Date(year, month - 1, 1),
+      new Date(year, month, 0, 23, 59, 59),
+    );
   }
 
   @Put(':id')

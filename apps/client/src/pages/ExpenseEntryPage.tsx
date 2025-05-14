@@ -1,11 +1,12 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import type { SubmitHandler } from 'react-hook-form';
 import * as z from 'zod';
 import { useNavigate } from 'react-router-dom';
 import expenseService from '../services/expenseService';
-import { Button } from '../components/ui/button';
+import incomeService from '../services/incomeService';
+import savingsService from '../services/savingsService';
+import type { CreateExpenseDto } from '../types/expense';
 import {
 	Form,
 	FormControl,
@@ -15,73 +16,126 @@ import {
 	FormMessage,
 } from '../components/ui/form';
 import { Input } from '../components/ui/input';
+import { Button } from '../components/ui/button';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 
-// Enhanced validation schema
-const expenseEntryFormSchema = z.object({
-	amount: z
-		.number({
-			required_error: 'Amount is required',
-			invalid_type_error: 'Amount must be a number',
-		})
-		.positive({ message: 'Amount must be greater than 0' })
-		.max(1000000, { message: 'Amount must be less than 1,000,000' }),
-	category: z.string().min(1, 'Category is required').max(50),
-	description: z.string().max(200).optional(),
-	date: z.date({
-		required_error: 'Date is required',
-		invalid_type_error: 'Please enter a valid date',
-	}),
-});
-
-type ExpenseEntryFormValues = z.infer<typeof expenseEntryFormSchema>;
-
 const ExpenseEntryPage: React.FC = () => {
 	const navigate = useNavigate();
+	const [availableAmount, setAvailableAmount] = useState<number>(0);
+	const [loading, setLoading] = useState(true);
 
-	const form = useForm<ExpenseEntryFormValues>({
-		resolver: zodResolver(expenseEntryFormSchema),
+	useEffect(() => {
+		const fetchAvailableAmount = async () => {
+			const currentDate = new Date();
+			const currentYear = currentDate.getFullYear();
+			const currentMonth = currentDate.getMonth() + 1;
+
+			try {
+				const [incomeTotal, savingsTotal] = await Promise.all([
+					incomeService.getTotalIncomeByMonthYear(currentYear, currentMonth),
+					savingsService.getTotalSavingsByMonthYear(currentYear, currentMonth),
+				]);
+
+				setAvailableAmount(incomeTotal - savingsTotal);
+			} catch (error) {
+				console.error('Error fetching available amount:', error);
+				toast.error('Error', {
+					description: 'Could not fetch available amount for validation',
+				});
+			} finally {
+				setLoading(false);
+			}
+		};
+
+		fetchAvailableAmount();
+	}, []);
+
+	const expenseFormSchema = z.object({
+		amount: z.coerce
+			.number({ required_error: 'Amount is required' })
+			.positive('Amount must be greater than zero')
+			.max(1000000, 'Amount must be less than $1,000,000')
+			.refine((val) => val <= availableAmount, {
+				message: `Amount cannot exceed available funds of $${availableAmount.toLocaleString()}`,
+			}),
+		category: z.string().min(1, 'Category is required'),
+		date: z.string().refine((val) => !isNaN(Date.parse(val)), {
+			message: 'Date must be a valid date',
+		}),
+		description: z.string().optional(),
+	});
+
+	const form = useForm<z.infer<typeof expenseFormSchema>>({
+		resolver: zodResolver(expenseFormSchema),
 		defaultValues: {
 			amount: 0,
 			category: '',
+			date: new Date().toISOString().split('T')[0],
 			description: '',
-			date: new Date(),
 		},
 	});
 
-	const onSubmit: SubmitHandler<ExpenseEntryFormValues> = async (data) => {
+	const onSubmit = async (values: z.infer<typeof expenseFormSchema>) => {
 		try {
-			const result = await expenseService.createExpense({
-				...data,
-				date: data.date.toISOString(), // Convert Date object to ISO string
-			});
+			const result = await expenseService.createExpense(
+				values as CreateExpenseDto
+			);
 
 			toast.success('Expense Added', {
-				description: `Successfully recorded expense of $${result.amount.toFixed(2)}`,
+				description: `Added ${new Intl.NumberFormat('en-US', {
+					style: 'currency',
+					currency: 'USD',
+				}).format(result.amount)} for ${result.category}`,
 				action: {
-					label: 'View Expenses',
+					label: 'View All',
 					onClick: () => navigate('/expenses'),
 				},
 			});
 
 			form.reset();
+			navigate('/expenses');
 		} catch (err) {
+			console.error('Failed to add expense:', err);
 			const errorMessage =
 				err instanceof Error
 					? err.message
 					: 'Failed to add expense. Please try again.';
 
-			toast.error('Expense Creation Failed', {
+			toast.error('Error Adding Expense', {
 				description: errorMessage,
 			});
 		}
 	};
 
+	if (loading) {
+		return (
+			<div className='flex items-center justify-center p-8'>
+				<Loader2 className='h-8 w-8 animate-spin' />
+			</div>
+		);
+	}
+
 	return (
 		<div className='container mx-auto p-4'>
-			<div className='w-full max-w-md mx-auto p-8 space-y-6 bg-white rounded-lg shadow-md'>
+			<div className='w-full max-w-md mx-auto p-6 space-y-6 bg-white rounded-lg shadow-md'>
 				<h2 className='text-2xl font-bold text-center'>Add New Expense</h2>
+
+				{availableAmount <= 0 ? (
+					<div className='text-red-600 text-center p-4 bg-red-50 rounded-lg'>
+						No funds available for expenses. Your savings have exceeded your
+						income.
+					</div>
+				) : (
+					<div className='text-green-600 text-center p-4 bg-green-50 rounded-lg'>
+						Available amount for expenses:{' '}
+						{new Intl.NumberFormat('en-US', {
+							style: 'currency',
+							currency: 'USD',
+						}).format(availableAmount)}
+					</div>
+				)}
+
 				<Form {...form}>
 					<form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4'>
 						<FormField
@@ -99,18 +153,12 @@ const ExpenseEntryPage: React.FC = () => {
 												type='number'
 												step='0.01'
 												min='0.01'
-												placeholder='1500.00'
+												placeholder='100.00'
 												className='pl-8'
 												{...field}
-												onFocus={(e) => {
-													if (e.target.value === '0') {
-														e.target.value = '';
-													}
-												}}
-												onChange={(e) => {
-													const value = parseFloat(e.target.value);
-													field.onChange(isNaN(value) ? 0 : value);
-												}}
+												onChange={(e) =>
+													field.onChange(parseFloat(e.target.value))
+												}
 											/>
 										</div>
 									</FormControl>
@@ -126,24 +174,9 @@ const ExpenseEntryPage: React.FC = () => {
 								<FormItem>
 									<FormLabel>Category</FormLabel>
 									<FormControl>
-										<Input placeholder='e.g., Groceries' {...field} />
-									</FormControl>
-									<FormMessage />
-								</FormItem>
-							)}
-						/>
-
-						<FormField
-							control={form.control}
-							name='description'
-							render={({ field }) => (
-								<FormItem>
-									<FormLabel>Description (Optional)</FormLabel>
-									<FormControl>
 										<Input
-											placeholder='e.g., Weekly shopping'
+											placeholder='e.g., Groceries, Utilities'
 											{...field}
-											value={field.value ?? ''}
 										/>
 									</FormControl>
 									<FormMessage />
@@ -158,11 +191,23 @@ const ExpenseEntryPage: React.FC = () => {
 								<FormItem>
 									<FormLabel>Date</FormLabel>
 									<FormControl>
+										<Input type='date' {...field} />
+									</FormControl>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+
+						<FormField
+							control={form.control}
+							name='description'
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>Description (Optional)</FormLabel>
+									<FormControl>
 										<Input
-											type='date'
+											placeholder='Additional details about the expense'
 											{...field}
-											value={field.value?.toISOString().split('T')[0] ?? ''}
-											onChange={(e) => field.onChange(new Date(e.target.value))}
 										/>
 									</FormControl>
 									<FormMessage />
@@ -175,14 +220,10 @@ const ExpenseEntryPage: React.FC = () => {
 								type='button'
 								variant='outline'
 								className='w-full'
-								onClick={() => navigate('/expenses')}
-								disabled={form.formState.isSubmitting}>
+								onClick={() => navigate(-1)}>
 								Cancel
 							</Button>
-							<Button
-								type='submit'
-								className='w-full'
-								disabled={form.formState.isSubmitting}>
+							<Button type='submit' className='w-full'>
 								{form.formState.isSubmitting ? (
 									<>
 										<Loader2 className='mr-2 h-4 w-4 animate-spin' />

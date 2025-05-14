@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import incomeService from '../services/incomeService';
 import expenseService from '../services/expenseService';
 import savingsService from '../services/savingsService';
-import type { Income } from '../types/income';
 import type { Expense, TotalExpensesResponse } from '../types/expense';
 import type { TotalSavingsResponse } from '../types/saving';
 import type { AxiosError } from 'axios';
@@ -17,7 +16,6 @@ import {
 } from '../components/ui/card';
 
 const DashboardPage: React.FC = () => {
-	const [income, setIncome] = useState<Income | null>(null);
 	const [expensesData, setExpensesData] =
 		useState<TotalExpensesResponse | null>(null);
 	const [savingsData, setSavingsData] = useState<TotalSavingsResponse | null>(
@@ -26,6 +24,7 @@ const DashboardPage: React.FC = () => {
 	const [recentExpenses, setRecentExpenses] = useState<Expense[]>([]);
 	const [loading, setLoading] = useState<boolean>(true);
 	const [error, setError] = useState<string | null>(null);
+	const [totalIncome, setTotalIncome] = useState<number>(0);
 
 	const currentDate = new Date();
 	const currentYear = currentDate.getFullYear();
@@ -35,7 +34,7 @@ const DashboardPage: React.FC = () => {
 		setLoading(true);
 		setError(null);
 		try {
-			const [incomeList, , expensesTotal, allExpenses, savingsTotal] =
+			const [, incomeTotal, expensesTotal, allExpenses, savingsTotal] =
 				await Promise.all([
 					incomeService.getIncomeByMonthYear(currentYear, currentMonth),
 					incomeService.getTotalIncomeByMonthYear(currentYear, currentMonth),
@@ -44,7 +43,7 @@ const DashboardPage: React.FC = () => {
 					savingsService.getTotalSavingsByMonthYear(currentYear, currentMonth),
 				]);
 
-			setIncome(incomeList || null);
+			setTotalIncome(incomeTotal);
 			setExpensesData(expensesTotal);
 			setSavingsData({ total: savingsTotal });
 			setRecentExpenses(
@@ -62,7 +61,6 @@ const DashboardPage: React.FC = () => {
 				error.response?.status === 404 &&
 				error.response.data?.message?.includes('Income not found')
 			) {
-				setIncome(null);
 				try {
 					const expensesTotal =
 						await expenseService.getTotalExpensesByMonthYear(
@@ -110,7 +108,6 @@ const DashboardPage: React.FC = () => {
 		fetchDashboardData();
 	}, [fetchDashboardData]);
 
-	const totalIncome = income?.amount ?? 0;
 	const totalExpenses = expensesData?.total ?? 0;
 	const totalSavings = savingsData?.total ?? 0;
 

@@ -32,13 +32,35 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 					<Route element={<AuthenticatedLayout />}>
 						<Route index element={<DashboardPage />} />
 						<Route path='/dashboard' element={<DashboardPage />} />
+
+						{/* Income */}
 						<Route path='/income/add' element={<AddIncomePage />} />
+						<Route
+							path='/incomes/:year/:month'
+							element={<MonthlySummaryPage />}
+						/>
+
+						{/* Savings */}
 						<Route path='/savings/add' element={<AddSavingsPage />} />
+						<Route
+							path='/savings/:year/:month'
+							element={<MonthlySummaryPage />}
+						/>
+
+						{/* Summary */}
 						<Route path='/summary' element={<MonthlySummaryPage />} />
 						<Route
 							path='/summary/:year/:month'
 							element={<MonthlySummaryPage />}
 						/>
+
+						{/* Optional: Legacy Dashboard Summary Route */}
+						<Route
+							path='/dashboard/monthly-summary/:year/:month'
+							element={<MonthlySummaryPage />}
+						/>
+
+						{/* Expenses */}
 						<Route path='/expenses/add' element={<ExpenseEntryPage />} />
 						<Route path='/expenses' element={<ExpenseListPage />} />
 					</Route>

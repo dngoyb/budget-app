@@ -16,7 +16,7 @@ import { Button } from '../components/ui/button';
 import { toast } from 'sonner';
 import { Loader2, ArrowLeft, PlusCircle } from 'lucide-react';
 import { format } from 'date-fns';
-import type { AxiosError } from 'axios';
+import { AxiosError } from 'axios';
 
 const MonthlySummaryPage: React.FC = () => {
 	const navigate = useNavigate();
@@ -156,6 +156,7 @@ const MonthlySummaryPage: React.FC = () => {
 			</div>
 
 			<div className='grid grid-cols-1 md:grid-cols-3 gap-6 mb-8'>
+				{/* Total Income */}
 				<Card>
 					<CardHeader>
 						<CardTitle className='text-lg'>Total Income</CardTitle>
@@ -167,6 +168,7 @@ const MonthlySummaryPage: React.FC = () => {
 					</CardContent>
 				</Card>
 
+				{/* Total Expenses */}
 				<Card>
 					<CardHeader>
 						<CardTitle className='text-lg'>Total Expenses</CardTitle>
@@ -178,6 +180,7 @@ const MonthlySummaryPage: React.FC = () => {
 					</CardContent>
 				</Card>
 
+				{/* Total Savings */}
 				<Card>
 					<CardHeader>
 						<CardTitle className='text-lg'>Total Saved</CardTitle>

@@ -16,13 +16,13 @@ const incomeService = {
 	getIncomeByMonthYear: async (
 		year: number,
 		month: number
-	): Promise<Income | null> => {
+	): Promise<Income[]> => {
 		try {
 			const response = await api.get(`/incomes/${year}/${month}`);
-			return response.data;
+			return Array.isArray(response.data) ? response.data : [];
 		} catch (error) {
 			if (isAxiosError(error) && error.response?.status === 404) {
-				return null;
+				return [];
 			}
 			throw error;
 		}

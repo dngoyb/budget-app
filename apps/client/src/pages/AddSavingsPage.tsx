@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useNavigate } from 'react-router-dom';
 import savingsService from '../services/savingsService';
+import incomeService from '../services/incomeService';
+import expenseService from '../services/expenseService';
 import type { CreateSavingsDto } from '../types/saving';
 import {
 	Form,
@@ -18,33 +20,62 @@ import { Button } from '../components/ui/button';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 
-// Zod schema for form validation
-const savingsFormSchema = z.object({
-	amount: z.coerce
-		.number({ required_error: 'Amount is required' })
-		.positive('Amount must be greater than zero')
-		.max(1000000, 'Amount must be less than $1,000,000'),
-	date: z.string().refine((val) => !isNaN(Date.parse(val)), {
-		message: 'Date must be a valid date',
-	}),
-	description: z.string().optional(),
-});
-
-type SavingsFormValues = z.infer<typeof savingsFormSchema>;
-
 const AddSavingsPage: React.FC = () => {
 	const navigate = useNavigate();
+	const [availableAmount, setAvailableAmount] = useState<number>(0);
+	const [loading, setLoading] = useState(true);
 
-	const form = useForm<SavingsFormValues>({
+	useEffect(() => {
+		const fetchAvailableAmount = async () => {
+			const currentDate = new Date();
+			const currentYear = currentDate.getFullYear();
+			const currentMonth = currentDate.getMonth() + 1;
+
+			try {
+				const [incomeTotal, expensesTotal] = await Promise.all([
+					incomeService.getTotalIncomeByMonthYear(currentYear, currentMonth),
+					expenseService.getTotalExpensesByMonthYear(currentYear, currentMonth),
+				]);
+
+				setAvailableAmount(incomeTotal - expensesTotal.total);
+			} catch (error) {
+				console.error('Error fetching available amount:', error);
+				toast.error('Error', {
+					description: 'Could not fetch available amount for validation',
+				});
+			} finally {
+				setLoading(false);
+			}
+		};
+
+		fetchAvailableAmount();
+	}, []);
+
+	// Zod schema for form validation
+	const savingsFormSchema = z.object({
+		amount: z.coerce
+			.number({ required_error: 'Amount is required' })
+			.positive('Amount must be greater than zero')
+			.max(1000000, 'Amount must be less than $1,000,000')
+			.refine((val) => val <= availableAmount, {
+				message: `Amount cannot exceed available funds of $${availableAmount.toLocaleString()}`,
+			}),
+		date: z.string().refine((val) => !isNaN(Date.parse(val)), {
+			message: 'Date must be a valid date',
+		}),
+		description: z.string().optional(),
+	});
+
+	const form = useForm<z.infer<typeof savingsFormSchema>>({
 		resolver: zodResolver(savingsFormSchema),
 		defaultValues: {
 			amount: 0,
-			date: new Date().toISOString().split('T')[0], // Default to today's date
+			date: new Date().toISOString().split('T')[0],
 			description: '',
 		},
 	});
 
-	const onSubmit = async (values: SavingsFormValues) => {
+	const onSubmit = async (values: z.infer<typeof savingsFormSchema>) => {
 		try {
 			const result = await savingsService.createSavings(
 				values as CreateSavingsDto
@@ -54,14 +85,16 @@ const AddSavingsPage: React.FC = () => {
 				description: `Added ${new Intl.NumberFormat('en-US', {
 					style: 'currency',
 					currency: 'USD',
-				}).format(
-					result.amount
-				)} on ${new Date(result.date).toLocaleDateString()}`,
+				}).format(result.amount)} on ${new Date(
+					result.date
+				).toLocaleDateString()}`,
 				action: {
 					label: 'View Summary',
 					onClick: () =>
 						navigate(
-							`/summary/${new Date(result.date).getFullYear()}/${new Date(result.date).getMonth() + 1}`
+							`/summary/${new Date(result.date).getFullYear()}/${
+								new Date(result.date).getMonth() + 1
+							}`
 						),
 				},
 			});
@@ -81,12 +114,35 @@ const AddSavingsPage: React.FC = () => {
 		}
 	};
 
+	if (loading) {
+		return (
+			<div className='flex items-center justify-center p-8'>
+				<Loader2 className='h-8 w-8 animate-spin' />
+			</div>
+		);
+	}
+
 	return (
 		<div className='container mx-auto p-4'>
 			<div className='w-full max-w-md mx-auto p-6 space-y-6 bg-white rounded-lg shadow-md'>
 				<h2 className='text-2xl font-bold text-center'>
 					Add Savings Contribution
 				</h2>
+
+				{availableAmount <= 0 ? (
+					<div className='text-red-600 text-center p-4 bg-red-50 rounded-lg'>
+						No funds available for savings. Your expenses have exceeded your
+						income.
+					</div>
+				) : (
+					<div className='text-green-600 text-center p-4 bg-green-50 rounded-lg'>
+						Available amount for savings:{' '}
+						{new Intl.NumberFormat('en-US', {
+							style: 'currency',
+							currency: 'USD',
+						}).format(availableAmount)}
+					</div>
+				)}
 
 				<Form {...form}>
 					<form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4'>
