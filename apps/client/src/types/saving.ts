@@ -19,3 +19,7 @@ export interface Savings {
 	createdAt: string;
 	updatedAt: string;
 }
+
+export interface TotalSavingsResponse {
+	total: number;
+}

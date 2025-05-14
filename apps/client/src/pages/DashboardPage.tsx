@@ -1,9 +1,11 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import budgetService from '../services/budgetService';
+import incomeService from '../services/incomeService';
 import expenseService from '../services/expenseService';
-import type { Budget } from '../types/budget';
+import savingsService from '../services/savingsService';
+import type { Income } from '../types/income';
 import type { Expense, TotalExpensesResponse } from '../types/expense';
+import type { TotalSavingsResponse } from '../types/saving';
 import type { AxiosError } from 'axios';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
@@ -15,9 +17,12 @@ import {
 } from '../components/ui/card';
 
 const DashboardPage: React.FC = () => {
-	const [budget, setBudget] = useState<Budget | null>(null);
+	const [income, setIncome] = useState<Income | null>(null);
 	const [expensesData, setExpensesData] =
 		useState<TotalExpensesResponse | null>(null);
+	const [savingsData, setSavingsData] = useState<TotalSavingsResponse | null>(
+		null
+	);
 	const [recentExpenses, setRecentExpenses] = useState<Expense[]>([]);
 	const [loading, setLoading] = useState<boolean>(true);
 	const [error, setError] = useState<string | null>(null);
@@ -30,45 +35,59 @@ const DashboardPage: React.FC = () => {
 		setLoading(true);
 		setError(null);
 		try {
-			const [budgetData, expensesResponse, allExpenses] = await Promise.all([
-				budgetService.getBudgetByMonthYear(currentYear, currentMonth),
-				expenseService.getTotalExpensesByMonthYear(currentYear, currentMonth),
-				expenseService.getAllExpenses(),
-			]);
+			const [incomeList, , expensesTotal, allExpenses, savingsTotal] =
+				await Promise.all([
+					incomeService.getIncomeByMonthYear(currentYear, currentMonth),
+					incomeService.getTotalIncomeByMonthYear(currentYear, currentMonth),
+					expenseService.getTotalExpensesByMonthYear(currentYear, currentMonth),
+					expenseService.getAllExpenses(),
+					savingsService.getTotalSavingsByMonthYear(currentYear, currentMonth),
+				]);
 
-			setBudget(budgetData);
-			setExpensesData(expensesResponse); // Now properly using TotalExpensesResponse
-
-			const sortedRecentExpenses = allExpenses
-				.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-				.slice(0, 5);
-			setRecentExpenses(sortedRecentExpenses);
+			setIncome(incomeList || null);
+			setExpensesData(expensesTotal);
+			setSavingsData({ total: savingsTotal });
+			setRecentExpenses(
+				allExpenses
+					.sort(
+						(a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+					)
+					.slice(0, 5)
+			);
 		} catch (err: unknown) {
 			const error = err as AxiosError<{ message: string }>;
 			console.error('Failed to fetch dashboard data:', error);
 
 			if (
 				error.response?.status === 404 &&
-				error.response.data?.message?.includes('Budget not found')
+				error.response.data?.message?.includes('Income not found')
 			) {
-				setBudget(null);
+				setIncome(null);
 				try {
-					const expensesResponse =
+					const expensesTotal =
 						await expenseService.getTotalExpensesByMonthYear(
 							currentYear,
 							currentMonth
 						);
-					setExpensesData(expensesResponse); // Properly set the response object
+					const savingsTotal = await savingsService.getTotalSavingsByMonthYear(
+						currentYear,
+						currentMonth
+					);
+
+					setExpensesData(expensesTotal);
+					setSavingsData({ total: savingsTotal });
 
 					const allExpenses = await expenseService.getAllExpenses();
-					const sortedRecentExpenses = allExpenses
-						.sort(
-							(a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-						)
-						.slice(0, 5);
-					setRecentExpenses(sortedRecentExpenses);
+					setRecentExpenses(
+						allExpenses
+							.sort(
+								(a, b) =>
+									new Date(b.date).getTime() - new Date(a.date).getTime()
+							)
+							.slice(0, 5)
+					);
 				} catch {
-					setExpensesData({ total: 0 }); // Default response when no expenses
+					setExpensesData({ total: 0 });
 					setRecentExpenses([]);
 				}
 			} else {
@@ -80,6 +99,7 @@ const DashboardPage: React.FC = () => {
 					description: errorMessage,
 				});
 				setExpensesData(null);
+				setSavingsData(null);
 			}
 		} finally {
 			setLoading(false);
@@ -90,10 +110,12 @@ const DashboardPage: React.FC = () => {
 		fetchDashboardData();
 	}, [fetchDashboardData]);
 
+	const totalIncome = income?.amount ?? 0;
 	const totalExpenses = expensesData?.total ?? 0;
-	const remainingAmount = budget ? budget.amount - totalExpenses : null;
-	const isOverBudget = remainingAmount !== null && remainingAmount < 0;
-	const hasBudget = budget !== null;
+	const totalSavings = savingsData?.total ?? 0;
+
+	const remainingAmount = totalIncome - totalExpenses - totalSavings;
+	const isNegative = remainingAmount < 0;
 
 	const formatCurrency = (amount: number) => {
 		return new Intl.NumberFormat('en-US', {
@@ -131,89 +153,109 @@ const DashboardPage: React.FC = () => {
 		<div className='container mx-auto p-4'>
 			<h1 className='text-2xl font-bold mb-4'>Dashboard</h1>
 			<p className='mb-6 text-gray-600'>
-				Welcome to your Budget App Dashboard!
+				Welcome to your Personal Finance Dashboard!
 			</p>
 
-			<div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
-				{/* Budget Card */}
+			<div className='grid grid-cols-1 md:grid-cols-4 gap-6'>
+				{/* Total Income */}
 				<Card>
 					<CardHeader>
-						<CardTitle>
-							Current Month's Budget ({currentMonth}/{currentYear})
-						</CardTitle>
+						<CardTitle>Total Income</CardTitle>
 					</CardHeader>
 					<CardContent>
-						{hasBudget ? (
-							<div className='space-y-3'>
-								<p>Budgeted Amount: {formatCurrency(budget.amount)}</p>
-								<p>Total Expenses: {formatCurrency(totalExpenses)}</p>
-								<p>
-									Remaining:{' '}
-									<span
-										className={
-											isOverBudget
-												? 'text-red-600 font-medium'
-												: 'text-green-600 font-medium'
-										}>
-										{formatCurrency(Math.abs(remainingAmount!))}{' '}
-										{isOverBudget ? 'Over Budget' : 'Remaining'}
-									</span>
-								</p>
-								<Link
-									to={`/budget/details/${currentYear}/${currentMonth}`}
-									className='text-blue-600 hover:underline inline-block mt-2'>
-									View Budget Details
-								</Link>
-							</div>
-						) : (
-							<div className='space-y-3'>
-								<p className='text-gray-600'>
-									No budget set for {currentMonth}/{currentYear}.
-								</p>
-								<Link
-									to='/budget/setup'
-									className='text-blue-600 hover:underline inline-block mt-2'>
-									Set Up Budget
-								</Link>
-							</div>
-						)}
+						<p className='text-2xl font-bold'>{formatCurrency(totalIncome)}</p>
+						<Link
+							to={`/incomes/${currentYear}/${currentMonth}`}
+							className='text-blue-600 hover:underline inline-block mt-2 text-sm'>
+							View Income Summary
+						</Link>
 					</CardContent>
 				</Card>
 
-				{/* Recent Expenses Card */}
+				{/* Total Expenses */}
 				<Card>
 					<CardHeader>
-						<CardTitle>Recent Expenses</CardTitle>
+						<CardTitle>Total Expenses</CardTitle>
 					</CardHeader>
 					<CardContent>
-						{recentExpenses.length === 0 ? (
-							<p className='text-gray-600'>No recent expenses recorded.</p>
-						) : (
-							<ul className='space-y-2'>
-								{recentExpenses.map((expense) => (
-									<li key={expense.id} className='flex justify-between'>
-										<div>
-											<span className='font-medium'>
-												{expense.category || 'Uncategorized'}
-											</span>
-											<span className='text-gray-500 text-sm block'>
-												{new Date(expense.date).toLocaleDateString()}
-											</span>
-										</div>
-										<span className='font-medium'>
-											{formatCurrency(expense.amount)}
-										</span>
-									</li>
-								))}
-							</ul>
-						)}
+						<p className='text-2xl font-bold'>
+							{formatCurrency(totalExpenses)}
+						</p>
 						<Link
 							to='/expenses'
-							className='text-blue-600 hover:underline inline-block mt-4'>
+							className='text-blue-600 hover:underline inline-block mt-2 text-sm'>
 							View All Expenses
 						</Link>
 					</CardContent>
 				</Card>
+
+				{/* Total Saved */}
+				<Card>
+					<CardHeader>
+						<CardTitle>Total Saved</CardTitle>
+					</CardHeader>
+					<CardContent>
+						<p className='text-2xl font-bold'>{formatCurrency(totalSavings)}</p>
+						<Link
+							to={`/savings/${currentYear}/${currentMonth}`}
+							className='text-blue-600 hover:underline inline-block mt-2 text-sm'>
+							View Savings Summary
+						</Link>
+					</CardContent>
+				</Card>
+
+				{/* Remaining Amount */}
+				<Card>
+					<CardHeader>
+						<CardTitle>Remaining</CardTitle>
+					</CardHeader>
+					<CardContent>
+						<p
+							className={`text-2xl font-bold ${
+								isNegative ? 'text-red-600' : 'text-green-600'
+							}`}>
+							{formatCurrency(Math.abs(remainingAmount))}
+							<span className='text-sm font-normal ml-2'>
+								{isNegative ? 'Over Budget' : 'Remaining'}
+							</span>
+						</p>
+						<Link
+							to={`/dashboard/monthly-summary/${currentYear}/${currentMonth}`}
+							className='text-blue-600 hover:underline inline-block mt-2 text-sm'>
+							View Full Summary
+						</Link>
+					</CardContent>
+				</Card>
+			</div>
+
+			<div className='mt-8'>
+				<h2 className='text-xl font-semibold mb-4'>Recent Expenses</h2>
+				{recentExpenses.length === 0 ? (
+					<p className='text-gray-600'>No recent expenses recorded.</p>
+				) : (
+					<ul className='space-y-2'>
+						{recentExpenses.map((expense) => (
+							<li key={expense.id} className='flex justify-between'>
+								<div>
+									<span className='font-medium'>
+										{expense.category || 'Uncategorized'}
+									</span>
+									<span className='text-gray-500 text-sm block'>
+										{new Date(expense.date).toLocaleDateString()}
+									</span>
+								</div>
+								<span className='font-medium'>
+									{formatCurrency(expense.amount)}
+								</span>
+							</li>
+						))}
+					</ul>
+				)}
+				<Link
+					to='/expenses'
+					className='text-blue-600 hover:underline mt-4 block'>
+					View All Expenses
+				</Link>
 			</div>
 		</div>
 	);
