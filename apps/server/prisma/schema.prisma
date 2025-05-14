@@ -1,8 +1,8 @@
 // This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// learn more about it in the docs: https://pris.ly/d/prisma-schema   
 
 // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init   
 
 generator client {
   provider = "prisma-client-js"
@@ -21,21 +21,21 @@ model User {
   password  String?
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
-  Budget    Budget[]
+  Income    Income[]
   Expense   Expense[]
+  Savings   Savings[]
 }
 
-model Budget {
+model Income {
   id        String   @id @default(cuid())
   amount    Float
+  source    String // e.g., Salary, Freelance, etc.
   month     Int
   year      Int
   userId    String
   user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  @@unique([userId, month, year])
 }
 
 model Expense {
@@ -48,10 +48,17 @@ model Expense {
   userId String
   user   User   @relation(fields: [userId], references: [id])
 
-  // Optional: Link expense to a specific budget period if needed later
-  // budgetId    String l?
-  // budget      Budget?   @relation(fields: [budgetId], references: [id])
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Savings {
+  id          String   @id @default(cuid())
+  amount      Float
+  date        DateTime
+  description String?
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

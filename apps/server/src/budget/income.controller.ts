@@ -9,38 +9,36 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { BudgetService } from './budget.service';
-import { CreateBudgetDto } from './dto/create-budget.dto';
+import { IncomeService } from './income.service';
+import { CreateIncomeDto } from './dto/create-income.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
-@Controller('budget')
+@Controller('incomes')
 @UseGuards(JwtAuthGuard)
-export class BudgetController {
-  constructor(private readonly budgetService: BudgetService) {}
+export class IncomeController {
+  constructor(private readonly incomeService: IncomeService) {}
 
   @Post()
   async create(
     @Req() req: { user: { id: string } },
-    @Body() createBudgetDto: CreateBudgetDto,
+    @Body() createIncomeDto: CreateIncomeDto,
   ) {
     const userId = req.user.id;
-    const newBudget = await this.budgetService.create(userId, createBudgetDto);
-
-    return newBudget;
+    return this.incomeService.create(userId, createIncomeDto);
   }
 
   @Get()
   async findAll(@Req() req: { user: { id: string } }) {
     const userId = req.user.id;
-    const budgets = await this.budgetService.findByUser(userId);
+    const incomes = await this.incomeService.findByUser(userId);
 
-    if (!budgets || budgets.length === 0) {
+    if (!incomes || incomes.length === 0) {
       throw new NotFoundException(
-        `No budgets found for user with ID ${userId}`,
+        `No income records found for user with ID ${userId}`,
       );
     }
 
-    return budgets;
+    return incomes;
   }
 
   @Get(':year/:month')
@@ -50,19 +48,18 @@ export class BudgetController {
     @Param('month', ParseIntPipe) month: number,
   ) {
     const userId = req.user.id;
-
-    const budget = await this.budgetService.findOneByUserAndMonthYear(
+    const income = await this.incomeService.findOneByUserAndMonthYear(
       userId,
       month,
       year,
     );
 
-    if (!budget) {
+    if (!income) {
       throw new NotFoundException(
-        `Budget for ${month}/${year} not found for user with ID ${userId}`,
+        `Income record for ${month}/${year} not found for user with ID ${userId}`,
       );
     }
 
-    return budget;
+    return income;
   }
 }
