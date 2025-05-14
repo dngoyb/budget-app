@@ -42,6 +42,7 @@ const ExpenseEntryPage: React.FC = () => {
 				console.error('Error fetching available amount:', error);
 				toast.error('Error', {
 					description: 'Could not fetch available amount for validation',
+					className: 'bg-red-50 border-red-200 text-red-700',
 				});
 			} finally {
 				setLoading(false);
@@ -91,6 +92,7 @@ const ExpenseEntryPage: React.FC = () => {
 					label: 'View All',
 					onClick: () => navigate('/expenses'),
 				},
+				className: 'bg-green-50 border-green-200 text-green-700',
 			});
 
 			form.reset();
@@ -104,6 +106,7 @@ const ExpenseEntryPage: React.FC = () => {
 
 			toast.error('Error Adding Expense', {
 				description: errorMessage,
+				className: 'bg-red-50 border-red-200 text-red-700',
 			});
 		}
 	};

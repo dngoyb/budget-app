@@ -73,6 +73,7 @@ const AddIncomePage: React.FC = () => {
 					label: 'View Dashboard',
 					onClick: () => navigate('/dashboard'),
 				},
+				className: 'bg-green-50 border-green-200 text-green-700',
 			});
 
 			form.reset();
@@ -86,6 +87,7 @@ const AddIncomePage: React.FC = () => {
 
 			toast.error('Income Creation Failed', {
 				description: errorMessage,
+				className: 'bg-red-50 border-red-200 text-red-700',
 			});
 		}
 	};

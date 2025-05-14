@@ -42,6 +42,7 @@ const AddSavingsPage: React.FC = () => {
 				console.error('Error fetching available amount:', error);
 				toast.error('Error', {
 					description: 'Could not fetch available amount for validation',
+					className: 'bg-red-50 border-red-200 text-red-700',
 				});
 			} finally {
 				setLoading(false);
@@ -85,9 +86,9 @@ const AddSavingsPage: React.FC = () => {
 				description: `Added ${new Intl.NumberFormat('en-US', {
 					style: 'currency',
 					currency: 'USD',
-				}).format(result.amount)} on ${new Date(
-					result.date
-				).toLocaleDateString()}`,
+				}).format(
+					result.amount
+				)} on ${new Date(result.date).toLocaleDateString()}`,
 				action: {
 					label: 'View Summary',
 					onClick: () =>
@@ -97,6 +98,7 @@ const AddSavingsPage: React.FC = () => {
 							}`
 						),
 				},
+				className: 'bg-green-50 border-green-200 text-green-700',
 			});
 
 			form.reset();
@@ -110,6 +112,7 @@ const AddSavingsPage: React.FC = () => {
 
 			toast.error('Error Adding Savings', {
 				description: errorMessage,
+				className: 'bg-red-50 border-red-200 text-red-700',
 			});
 		}
 	};
