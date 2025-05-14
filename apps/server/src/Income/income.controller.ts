@@ -2,6 +2,8 @@ import {
   Controller,
   Post,
   Get,
+  Put,
+  Delete,
   Body,
   Param,
   ParseIntPipe,
@@ -11,6 +13,7 @@ import {
 } from '@nestjs/common';
 import { IncomeService } from './income.service';
 import { CreateIncomeDto } from './dto/create-income.dto';
+import { UpdateIncomeDto } from './dto/update-income.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('incomes')
@@ -61,5 +64,19 @@ export class IncomeController {
     }
 
     return income;
+  }
+
+  @Put(':id')
+  async update(
+    @Req() req: { user: { id: string } },
+    @Param('id') id: string,
+    @Body() updateIncomeDto: UpdateIncomeDto,
+  ) {
+    return this.incomeService.updateIncomeById(id, updateIncomeDto);
+  }
+
+  @Delete(':id')
+  async delete(@Param('id') id: string) {
+    return this.incomeService.deleteIncomeById(id);
   }
 }

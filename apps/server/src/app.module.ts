@@ -2,15 +2,17 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
-import { BudgetModule } from './budget/budget.module';
+import { IncomeModule } from './Income/income.module';
 import { ExpenseModule } from './expense/expense.module';
+import { SavingsModule } from './savings/savings.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     PrismaModule,
     AuthModule,
-    BudgetModule,
+    IncomeModule,
     ExpenseModule,
+    SavingsModule,
   ],
   controllers: [],
   providers: [],
