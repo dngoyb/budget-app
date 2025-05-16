@@ -44,44 +44,39 @@ const LoginPage: React.FC = () => {
 	});
 
 	const onSubmit = async (values: LoginFormValues) => {
-		const credentials: LoginDto = values;
-
 		try {
-			const result = await authService.login(credentials);
-			console.log('Login successful:', result);
-			toast.success('Login Successful', {
-				description: 'Welcome back to your dashboard!',
-				classNames: {
-					toast: 'bg-green-500 text-white',
-					description: 'text-white/80',
-					actionButton: 'bg-white text-green-500',
-				},
+			const result = await authService.login(values as LoginDto);
+
+			// Store the token
+			localStorage.setItem('token', result.token);
+
+			// Show success message
+			toast.success('Welcome back!', {
+				description: 'Successfully logged in.',
 			});
+
+			// Redirect to dashboard
 			navigate('/dashboard');
-		} catch (err: unknown) {
-			const error = err as AxiosError<{ message: string }>;
+		} catch (err) {
+			const error = err as AxiosError;
 			const errorMessage =
-				error.response?.data?.message ||
-				'Login failed. Please check your credentials.';
+				error.response?.status === 401
+					? 'Invalid email or password.'
+					: 'An error occurred during login. Please try again.';
 
 			toast.error('Login Failed', {
 				description: errorMessage,
-				classNames: {
-					toast: 'bg-red-500 text-white',
-					description: 'text-white/80',
-					actionButton: 'bg-white text-red-500',
-				},
 			});
 		}
 	};
 
 	return (
-		<div className='flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 via-white to-gray-100 px-4'>
-			<div className='w-full max-w-md p-8 space-y-6 bg-white rounded-xl shadow-lg backdrop-blur-sm border border-gray-200'>
-				<h2 className='text-3xl font-extrabold text-center text-gray-900'>
+		<div className='flex items-center justify-center min-h-screen bg-background px-4'>
+			<div className='w-full max-w-md p-8 space-y-6 bg-card text-card-foreground rounded-xl shadow-lg backdrop-blur-sm border border-border'>
+				<h2 className='text-3xl font-extrabold text-center text-foreground'>
 					Welcome Back
 				</h2>
-				<p className='text-center text-sm text-gray-500'>
+				<p className='text-center text-sm text-muted-foreground'>
 					Sign in to manage your income, expenses, and savings.
 				</p>
 
@@ -118,36 +113,8 @@ const LoginPage: React.FC = () => {
 						/>
 
 						{/* Submit Button */}
-						<Button
-							type='submit'
-							className='w-full mt-2'
-							disabled={form.formState.isSubmitting}>
-							{form.formState.isSubmitting ? (
-								<>
-									<span className='mr-2'>
-										<svg
-											className='animate-spin h-4 w-4'
-											xmlns='http://www.w3.org/2000/svg'
-											fill='none'
-											viewBox='0 0 24 24'>
-											<circle
-												className='opacity-25'
-												cx='12'
-												cy='12'
-												r='10'
-												stroke='currentColor'
-												strokeWidth='4'></circle>
-											<path
-												className='opacity-75'
-												fill='currentColor'
-												d='M4 12a8 8 0 018-8V4A10 10 0 1020 12H4z'></path>
-										</svg>
-									</span>
-									Logging in...
-								</>
-							) : (
-								'Login'
-							)}
+						<Button type='submit' className='w-full'>
+							{form.formState.isSubmitting ? 'Signing in...' : 'Sign in'}
 						</Button>
 					</form>
 				</Form>

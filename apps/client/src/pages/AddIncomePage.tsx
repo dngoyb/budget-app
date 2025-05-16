@@ -73,7 +73,6 @@ const AddIncomePage: React.FC = () => {
 					label: 'View Dashboard',
 					onClick: () => navigate('/dashboard'),
 				},
-				className: 'bg-green-50 border-green-200 text-green-700',
 			});
 
 			form.reset();
@@ -87,15 +86,16 @@ const AddIncomePage: React.FC = () => {
 
 			toast.error('Income Creation Failed', {
 				description: errorMessage,
-				className: 'bg-red-50 border-red-200 text-red-700',
 			});
 		}
 	};
 
 	return (
 		<div className='container mx-auto p-4'>
-			<div className='w-full max-w-md mx-auto p-8 space-y-6 bg-white rounded-lg shadow-md'>
-				<h2 className='text-2xl font-bold text-center'>Add Income Source</h2>
+			<div className='w-full max-w-md mx-auto p-8 space-y-6 bg-card text-card-foreground rounded-lg shadow-md'>
+				<h2 className='text-2xl font-bold text-center text-foreground'>
+					Add Income Source
+				</h2>
 
 				<Form {...form}>
 					<form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4'>

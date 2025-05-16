@@ -42,7 +42,6 @@ const AddSavingsPage: React.FC = () => {
 				console.error('Error fetching available amount:', error);
 				toast.error('Error', {
 					description: 'Could not fetch available amount for validation',
-					className: 'bg-red-50 border-red-200 text-red-700',
 				});
 			} finally {
 				setLoading(false);
@@ -98,7 +97,6 @@ const AddSavingsPage: React.FC = () => {
 							}`
 						),
 				},
-				className: 'bg-green-50 border-green-200 text-green-700',
 			});
 
 			form.reset();
@@ -112,7 +110,6 @@ const AddSavingsPage: React.FC = () => {
 
 			toast.error('Error Adding Savings', {
 				description: errorMessage,
-				className: 'bg-red-50 border-red-200 text-red-700',
 			});
 		}
 	};
@@ -127,18 +124,18 @@ const AddSavingsPage: React.FC = () => {
 
 	return (
 		<div className='container mx-auto p-4'>
-			<div className='w-full max-w-md mx-auto p-6 space-y-6 bg-white rounded-lg shadow-md'>
-				<h2 className='text-2xl font-bold text-center'>
+			<div className='w-full max-w-md mx-auto p-6 space-y-6 bg-card text-card-foreground rounded-lg shadow-md'>
+				<h2 className='text-2xl font-bold text-center text-foreground'>
 					Add Savings Contribution
 				</h2>
 
 				{availableAmount <= 0 ? (
-					<div className='text-red-600 text-center p-4 bg-red-50 rounded-lg'>
+					<div className='text-destructive text-center p-4 bg-destructive/10 rounded-lg'>
 						No funds available for savings. Your expenses have exceeded your
 						income.
 					</div>
 				) : (
-					<div className='text-green-600 text-center p-4 bg-green-50 rounded-lg'>
+					<div className='text-green-600 text-center p-4 bg-green-50/50 dark:bg-green-950/50 rounded-lg'>
 						Available amount for savings:{' '}
 						{new Intl.NumberFormat('en-US', {
 							style: 'currency',

@@ -48,22 +48,21 @@ const RegistrationPage: React.FC = () => {
 	});
 
 	const onSubmit = async (values: RegistrationFormValues) => {
-		const userData: CreateUserDto = values;
-
 		try {
-			const result = await authService.register(userData);
-			console.log('Registration successful:', result);
+			const result = await authService.register(values as CreateUserDto);
+			localStorage.setItem('token', result.token);
 
 			toast.success('Registration Successful', {
-				description: 'You can now log in with your new account.',
+				description: 'Your account has been created.',
 			});
 
-			navigate('/login');
+			navigate('/dashboard');
 		} catch (err) {
-			const error = err as AxiosError<{ message: string }>;
+			const error = err as AxiosError;
 			const errorMessage =
-				error.response?.data?.message ||
-				'Registration failed. Please try again.';
+				error.response?.status === 409
+					? 'This email is already registered.'
+					: 'Registration failed. Please try again.';
 
 			toast.error('Registration Failed', {
 				description: errorMessage,
@@ -72,13 +71,13 @@ const RegistrationPage: React.FC = () => {
 	};
 
 	return (
-		<div className='flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 via-white to-gray-50 px-4'>
-			<div className='w-full max-w-md p-8 space-y-6 bg-white rounded-xl shadow-lg border border-gray-200'>
+		<div className='flex items-center justify-center min-h-screen bg-background px-4'>
+			<div className='w-full max-w-md p-8 space-y-6 bg-card text-card-foreground rounded-xl shadow-lg border border-border'>
 				<div className='text-center'>
-					<h2 className='text-3xl font-extrabold text-gray-900'>
+					<h2 className='text-3xl font-extrabold text-foreground'>
 						Create Account
 					</h2>
-					<p className='mt-2 text-sm text-gray-600'>
+					<p className='mt-2 text-sm text-muted-foreground'>
 						Join us and start managing your finances today.
 					</p>
 				</div>
@@ -131,42 +130,14 @@ const RegistrationPage: React.FC = () => {
 						/>
 
 						{/* Submit Button */}
-						<Button
-							type='submit'
-							className='w-full mt-2'
-							disabled={form.formState.isSubmitting}>
-							{form.formState.isSubmitting ? (
-								<>
-									<span className='mr-2'>
-										<svg
-											className='animate-spin h-4 w-4'
-											xmlns='http://www.w3.org/2000/svg'
-											fill='none'
-											viewBox='0 0 24 24'>
-											<circle
-												className='opacity-25'
-												cx='12'
-												cy='12'
-												r='10'
-												stroke='currentColor'
-												strokeWidth='4'></circle>
-											<path
-												className='opacity-75'
-												fill='currentColor'
-												d='M4 12a8 8 0 018-8V4a10 10 0 108 8h-2a8 8 0 01-16 0z'></path>
-										</svg>
-									</span>
-									Registering...
-								</>
-							) : (
-								'Register'
-							)}
+						<Button type='submit' className='w-full'>
+							{form.formState.isSubmitting ? 'Creating Account...' : 'Sign Up'}
 						</Button>
 					</form>
 				</Form>
 
 				{/* Login Link */}
-				<p className='text-center text-sm text-gray-600'>
+				<p className='text-center text-sm text-muted-foreground'>
 					Already have an account?{' '}
 					<a
 						href='/login'
