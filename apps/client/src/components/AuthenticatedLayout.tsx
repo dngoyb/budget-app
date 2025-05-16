@@ -2,6 +2,7 @@ import React from 'react';
 import { Link, useLocation, Outlet } from 'react-router-dom';
 import UserInfoDisplay from './UserInfoDisplay';
 import { Button } from './ui/button';
+import { ThemeToggle } from './ThemeToggle';
 
 const AuthenticatedLayout: React.FC = () => {
 	const location = useLocation();
@@ -21,14 +22,14 @@ const AuthenticatedLayout: React.FC = () => {
 	];
 
 	return (
-		<div className='min-h-screen bg-gray-100 flex'>
+		<div className='min-h-screen bg-background flex'>
 			{/* Sidebar */}
-			<aside className='w-64 bg-white shadow-md h-full fixed inset-y-0 left-0 z-10'>
+			<aside className='w-64 bg-sidebar text-sidebar-foreground shadow-md h-full fixed inset-y-0 left-0 z-10'>
 				<div className='flex flex-col h-full justify-between'>
 					<div>
 						{/* Logo / App Title */}
-						<div className='p-4 border-b border-gray-200'>
-							<h1 className='text-xl font-bold text-blue-600'>
+						<div className='p-4 border-b border-sidebar-border'>
+							<h1 className='text-xl font-bold text-sidebar-primary'>
 								Finance Tracker
 							</h1>
 						</div>
@@ -44,8 +45,8 @@ const AuthenticatedLayout: React.FC = () => {
 									to={link.path}
 									className={`flex items-center space-x-3 w-full p-3 rounded-md transition-colors ${
 										location.pathname === link.path
-											? 'bg-blue-100 text-blue-700'
-											: 'text-gray-700 hover:bg-gray-100'
+											? 'bg-sidebar-accent text-sidebar-accent-foreground'
+											: 'text-sidebar-foreground hover:bg-sidebar-accent/50'
 									}`}>
 									<span>{link.icon}</span>
 									<span>{link.name}</span>
@@ -54,8 +55,12 @@ const AuthenticatedLayout: React.FC = () => {
 						</nav>
 					</div>
 
-					{/* Logout Button */}
-					<div className='p-4'>
+					{/* Theme Toggle and Logout */}
+					<div className='p-4 space-y-2'>
+						<div className='flex items-center justify-between px-3 py-2'>
+							<span className='text-sidebar-foreground'>Theme</span>
+							<ThemeToggle />
+						</div>
 						<Button variant='outline' onClick={handleLogout} className='w-full'>
 							🔐 Logout
 						</Button>
@@ -64,8 +69,8 @@ const AuthenticatedLayout: React.FC = () => {
 			</aside>
 
 			{/* Main Content Area */}
-			<main className='flex-1 ml-64 p-6 bg-gray-100 min-h-screen'>
-				<div className='max-w-4xl mx-auto bg-white rounded-lg shadow-md p-6'>
+			<main className='flex-1 ml-64 p-6 bg-background min-h-screen'>
+				<div className='max-w-4xl mx-auto bg-card text-card-foreground rounded-lg shadow-md p-6'>
 					<Outlet />
 				</div>
 			</main>
