@@ -24,7 +24,7 @@ import AuthenticatedLayout from './components/AuthenticatedLayout.tsx';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
 	<React.StrictMode>
-		<ThemeProvider defaultTheme='light' storageKey='budget-app-theme'>
+		<ThemeProvider defaultTheme='dark'>
 			<BrowserRouter>
 				<Toaster position='top-center' />
 
