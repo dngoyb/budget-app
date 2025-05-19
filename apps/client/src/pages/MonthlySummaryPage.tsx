@@ -14,9 +14,19 @@ import {
 } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { toast } from 'sonner';
-import { Loader2, ArrowLeft, PlusCircle, Pencil } from 'lucide-react';
+import { Loader2, ArrowLeft, PlusCircle, Pencil, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { AxiosError } from 'axios';
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+} from '../components/ui/alert-dialog';
 
 const MonthlySummaryPage: React.FC = () => {
 	const navigate = useNavigate();
@@ -40,6 +50,13 @@ const MonthlySummaryPage: React.FC = () => {
 	const [totalSavings, setTotalSavings] = useState<number | null>(null);
 	const [loading, setLoading] = useState<boolean>(true);
 	const [error, setError] = useState<string | null>(null);
+	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+	const [itemToDelete, setItemToDelete] = useState<{
+		type: 'income' | 'savings';
+		id: string;
+		amount: number;
+		description: string;
+	} | null>(null);
 
 	const formatCurrency = (amount: number) => {
 		return new Intl.NumberFormat('en-US', {
@@ -118,6 +135,71 @@ const MonthlySummaryPage: React.FC = () => {
 
 	const isNegative = remainingAmount !== null && remainingAmount < 0;
 	const monthName = format(new Date(year, month - 1), 'MMMM yyyy');
+
+	const handleDeleteClick = (
+		type: 'income' | 'savings',
+		id: string,
+		amount: number,
+		description: string
+	) => {
+		setItemToDelete({ type, id, amount, description });
+		setDeleteDialogOpen(true);
+	};
+
+	const handleDeleteConfirm = async () => {
+		if (!itemToDelete) return;
+
+		try {
+			if (itemToDelete.type === 'income') {
+				await incomeService.deleteIncomeById(itemToDelete.id);
+				toast.success('Income Deleted', {
+					description: `Deleted income of $${itemToDelete.amount.toFixed(2)} from "${itemToDelete.description}"`,
+				});
+			} else {
+				await savingsService.deleteSavingsById(itemToDelete.id);
+				toast.success('Savings Deleted', {
+					description: `Deleted savings contribution of $${itemToDelete.amount.toFixed(2)}`,
+				});
+			}
+
+			// Refresh the data
+			const [
+				incomeList,
+				incomeTotal,
+				expenseTotal,
+				expenseList,
+				savingsTotal,
+				savingsList,
+			] = await Promise.all([
+				incomeService.getIncomeByMonthYear(year, month),
+				incomeService.getTotalIncomeByMonthYear(year, month),
+				expenseService.getTotalExpensesByMonthYear(year, month),
+				expenseService.getExpensesByMonthYear(year, month),
+				savingsService.getTotalSavingsByMonthYear(year, month),
+				savingsService.getSavingsByMonthYear(year, month),
+			]);
+
+			setIncomeEntries(Array.isArray(incomeList) ? incomeList : []);
+			setTotalIncome(incomeTotal);
+			setExpensesData(expenseTotal);
+			setExpensesList(expenseList || []);
+			setTotalSavings(savingsTotal);
+			setSavingsList(savingsList || []);
+		} catch (err) {
+			console.error('Delete error:', err);
+			const errorMessage =
+				err instanceof Error
+					? err.message
+					: 'Failed to delete entry. Please try again.';
+
+			toast.error('Delete Failed', {
+				description: errorMessage,
+			});
+		} finally {
+			setDeleteDialogOpen(false);
+			setItemToDelete(null);
+		}
+	};
 
 	if (loading) {
 		return (
@@ -255,6 +337,20 @@ const MonthlySummaryPage: React.FC = () => {
 													className='h-8 w-8'>
 													<Pencil className='h-4 w-4' />
 												</Button>
+												<Button
+													variant='ghost'
+													size='icon'
+													onClick={() =>
+														handleDeleteClick(
+															'income',
+															income.id,
+															income.amount,
+															income.source
+														)
+													}
+													className='h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50'>
+													<Trash2 className='h-4 w-4' />
+												</Button>
 											</div>
 										</div>
 									</CardContent>
@@ -350,6 +446,20 @@ const MonthlySummaryPage: React.FC = () => {
 													className='h-8 w-8'>
 													<Pencil className='h-4 w-4' />
 												</Button>
+												<Button
+													variant='ghost'
+													size='icon'
+													onClick={() =>
+														handleDeleteClick(
+															'savings',
+															savings.id,
+															savings.amount,
+															savings.description || 'Savings'
+														)
+													}
+													className='h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50'>
+													<Trash2 className='h-4 w-4' />
+												</Button>
 											</div>
 										</div>
 									</CardContent>
@@ -359,6 +469,33 @@ const MonthlySummaryPage: React.FC = () => {
 					)}
 				</div>
 			</div>
+
+			<AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>Are you sure?</AlertDialogTitle>
+						<AlertDialogDescription>
+							This will permanently delete the{' '}
+							{itemToDelete?.type === 'income' ? 'income' : 'savings'} entry of{' '}
+							{formatCurrency(itemToDelete?.amount || 0)}.
+							{itemToDelete?.type === 'income'
+								? ` from "${itemToDelete?.description}"`
+								: itemToDelete?.description !== 'Savings'
+									? ` (${itemToDelete?.description})`
+									: ''}
+							. This action cannot be undone.
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel>Cancel</AlertDialogCancel>
+						<AlertDialogAction
+							onClick={handleDeleteConfirm}
+							className='bg-red-600 hover:bg-red-700'>
+							Delete
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 		</div>
 	);
 };

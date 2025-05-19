@@ -55,6 +55,10 @@ const incomeService = {
 		const response = await api.get(`/incomes/id/${id}`);
 		return response.data;
 	},
+
+	deleteIncomeById: async (id: string): Promise<void> => {
+		await api.delete(`/incomes/${id}`);
+	},
 };
 
 export default incomeService;

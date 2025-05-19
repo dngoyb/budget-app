@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import { Toaster } from 'sonner';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from './lib/theme-provider';
 
 // Pages
@@ -29,6 +29,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 				<Toaster position='top-center' />
 
 				<Routes>
+					<Route path='/' element={<Navigate to='/login' replace />} />
 					<Route path='/register' element={<RegistrationPage />} />
 					<Route path='/login' element={<LoginPage />} />
 
