@@ -34,6 +34,18 @@ export class SavingsService {
     });
   }
 
+  async findById(id: string) {
+    const savings = await this.prisma.savings.findUnique({
+      where: { id },
+    });
+
+    if (!savings) {
+      throw new NotFoundException(`Savings entry with ID ${id} not found`);
+    }
+
+    return savings;
+  }
+
   async getTotalSavingsByMonthYear(
     userId: string,
     year: number,

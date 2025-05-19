@@ -14,7 +14,7 @@ import {
 } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { toast } from 'sonner';
-import { Loader2, ArrowLeft, PlusCircle } from 'lucide-react';
+import { Loader2, ArrowLeft, PlusCircle, Pencil } from 'lucide-react';
 import { format } from 'date-fns';
 import { AxiosError } from 'axios';
 
@@ -236,14 +236,27 @@ const MonthlySummaryPage: React.FC = () => {
 						<div className='space-y-4'>
 							{incomeEntries.map((income) => (
 								<Card key={income.id}>
-									<CardContent className='p-4 flex justify-between items-center'>
-										<div>
-											<h3 className='font-medium'>{income.source}</h3>
-											<p className='text-sm text-gray-600'>
-												{format(new Date(income.createdAt), 'MMM d, yyyy')}
-											</p>
+									<CardContent className='p-4'>
+										<div className='flex justify-between items-start'>
+											<div>
+												<h3 className='font-medium'>{income.source}</h3>
+												<p className='text-sm text-gray-600'>
+													{format(new Date(income.createdAt), 'MMM d, yyyy')}
+												</p>
+											</div>
+											<div className='flex items-center gap-2'>
+												<p className='font-bold'>
+													{formatCurrency(income.amount)}
+												</p>
+												<Button
+													variant='ghost'
+													size='icon'
+													onClick={() => navigate(`/income/edit/${income.id}`)}
+													className='h-8 w-8'>
+													<Pencil className='h-4 w-4' />
+												</Button>
+											</div>
 										</div>
-										<p className='font-bold'>{formatCurrency(income.amount)}</p>
 									</CardContent>
 								</Card>
 							))}
@@ -311,21 +324,34 @@ const MonthlySummaryPage: React.FC = () => {
 						<div className='space-y-4'>
 							{savingsList.map((savings) => (
 								<Card key={savings.id}>
-									<CardContent className='p-4 flex justify-between items-center'>
-										<div>
-											<h3 className='font-medium'>Savings</h3>
-											<p className='text-sm text-gray-600'>
-												{format(new Date(savings.date), 'MMM d, yyyy')}
-											</p>
-											{savings.description && (
-												<p className='text-sm text-gray-500 mt-1 line-clamp-1'>
-													{savings.description}
+									<CardContent className='p-4'>
+										<div className='flex justify-between items-start'>
+											<div>
+												<h3 className='font-medium'>Savings</h3>
+												<p className='text-sm text-gray-600'>
+													{format(new Date(savings.date), 'MMM d, yyyy')}
 												</p>
-											)}
+												{savings.description && (
+													<p className='text-sm text-gray-500 mt-1 line-clamp-1'>
+														{savings.description}
+													</p>
+												)}
+											</div>
+											<div className='flex items-center gap-2'>
+												<p className='font-bold'>
+													{formatCurrency(savings.amount)}
+												</p>
+												<Button
+													variant='ghost'
+													size='icon'
+													onClick={() =>
+														navigate(`/savings/edit/${savings.id}`)
+													}
+													className='h-8 w-8'>
+													<Pencil className='h-4 w-4' />
+												</Button>
+											</div>
 										</div>
-										<p className='font-bold'>
-											{formatCurrency(savings.amount)}
-										</p>
 									</CardContent>
 								</Card>
 							))}

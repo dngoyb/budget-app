@@ -51,8 +51,9 @@ export class IncomeService {
   }
 
   async findOneByUserAndMonthYear(userId: string, month: number, year: number) {
-    return this.prisma.income.findFirst({
+    return this.prisma.income.findMany({
       where: { userId, month, year },
+      orderBy: [{ createdAt: 'desc' }],
     });
   }
 

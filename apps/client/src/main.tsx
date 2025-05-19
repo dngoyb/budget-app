@@ -15,6 +15,8 @@ import ExpenseListPage from './pages/ExpenseListPage.tsx';
 import MonthlySummaryPage from './pages/MonthlySummaryPage.tsx'; // renamed from BudgetDetailsPage
 import AddSavingsPage from './pages/AddSavingsPage.tsx'; // new page
 import NotFoundPage from './pages/NotFoundPage.tsx';
+import EditIncomePage from './pages/EditIncomePage';
+import EditSavingsPage from './pages/EditSavingsPage';
 
 // Components
 import ProtectedRoute from './components/ProtectedRoute.tsx';
@@ -37,6 +39,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 
 							{/* Income */}
 							<Route path='/income/add' element={<AddIncomePage />} />
+							<Route path='/income/edit/:id' element={<EditIncomePage />} />
 							<Route
 								path='/incomes/:year/:month'
 								element={<MonthlySummaryPage />}
@@ -44,6 +47,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 
 							{/* Savings */}
 							<Route path='/savings/add' element={<AddSavingsPage />} />
+							<Route path='/savings/edit/:id' element={<EditSavingsPage />} />
 							<Route
 								path='/savings/:year/:month'
 								element={<MonthlySummaryPage />}

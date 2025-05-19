@@ -18,7 +18,7 @@ const incomeService = {
 		month: number
 	): Promise<Income[]> => {
 		try {
-			const response = await api.get(`/incomes/${year}/${month}`);
+			const response = await api.get(`/incomes/month/${year}/${month}`);
 			return Array.isArray(response.data) ? response.data : [];
 		} catch (error) {
 			if (isAxiosError(error) && error.response?.status === 404) {
@@ -41,6 +41,19 @@ const incomeService = {
 			}
 			throw error;
 		}
+	},
+
+	updateIncome: async (
+		id: string,
+		incomeData: Partial<CreateIncomeDto>
+	): Promise<Income> => {
+		const response = await api.put(`/incomes/${id}`, incomeData);
+		return response.data;
+	},
+
+	getIncomeById: async (id: string): Promise<Income> => {
+		const response = await api.get(`/incomes/id/${id}`);
+		return response.data;
 	},
 };
 

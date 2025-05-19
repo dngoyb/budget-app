@@ -16,8 +16,15 @@ const savingsService = {
 		year: number,
 		month: number
 	): Promise<Savings[]> => {
-		const response = await api.get(`/savings/${year}/${month}`);
-		return response.data;
+		try {
+			const response = await api.get(`/savings/month/${year}/${month}`);
+			return response.data;
+		} catch (error) {
+			if (isAxiosError(error) && error.response?.status === 404) {
+				return [];
+			}
+			throw error;
+		}
 	},
 
 	getTotalSavingsByMonthYear: async (
@@ -45,6 +52,11 @@ const savingsService = {
 
 	deleteSavingsById: async (id: string): Promise<void> => {
 		await api.delete(`/savings/${id}`);
+	},
+
+	getSavingsById: async (id: string): Promise<Savings> => {
+		const response = await api.get(`/savings/id/${id}`);
+		return response.data;
 	},
 };
 

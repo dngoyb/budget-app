@@ -44,7 +44,7 @@ export class SavingsController {
     return { total };
   }
 
-  @Get(':year/:month')
+  @Get('month/:year/:month')
   async findByMonthYear(
     @Req() req: { user: { id: string } },
     @Param('year', ParseIntPipe) year: number,
@@ -56,6 +56,11 @@ export class SavingsController {
       new Date(year, month - 1, 1),
       new Date(year, month, 0, 23, 59, 59),
     );
+  }
+
+  @Get('id/:id')
+  async findOne(@Param('id') id: string) {
+    return this.savingsService.findById(id);
   }
 
   @Put(':id')

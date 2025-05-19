@@ -44,28 +44,6 @@ export class IncomeController {
     return incomes;
   }
 
-  @Get(':year/:month')
-  async findOneByMonthYear(
-    @Req() req: { user: { id: string } },
-    @Param('year', ParseIntPipe) year: number,
-    @Param('month', ParseIntPipe) month: number,
-  ) {
-    const userId = req.user.id;
-    const income = await this.incomeService.findOneByUserAndMonthYear(
-      userId,
-      month,
-      year,
-    );
-
-    if (!income) {
-      throw new NotFoundException(
-        `Income record for ${month}/${year} not found for user with ID ${userId}`,
-      );
-    }
-
-    return income;
-  }
-
   @Get('total/:year/:month')
   async getTotalByMonthYear(
     @Req() req: { user: { id: string } },
@@ -79,6 +57,21 @@ export class IncomeController {
       month,
     );
     return { total };
+  }
+
+  @Get('month/:year/:month')
+  async findOneByMonthYear(
+    @Req() req: { user: { id: string } },
+    @Param('year', ParseIntPipe) year: number,
+    @Param('month', ParseIntPipe) month: number,
+  ) {
+    const userId = req.user.id;
+    return this.incomeService.findOneByUserAndMonthYear(userId, month, year);
+  }
+
+  @Get('id/:id')
+  async findOne(@Param('id') id: string) {
+    return this.incomeService.findOneById(id);
   }
 
   @Put(':id')
